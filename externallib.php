@@ -391,6 +391,36 @@ class moodle_local_secretaria_external extends external_api {
         );
     }
 
+    /* Mail */
+
+    public static function send_mail($message) {
+        return self::execute('send_mail', array('message' => $message));
+    }
+
+    public static function send_mail_parameters() {
+        return new external_function_parameters(array(
+            'message' => new external_single_structure(array(
+               'sender' => self::value_required(PARAM_USERNAME, 'Sender username'),
+               'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+               'subject' => self::value_required(PARAM_TEXT, 'Message subject'),
+               'content' => self::value_required(PARAM_RAW, 'Message content'),
+               'to' => new external_multiple_structure(
+                   self::value_required(PARAM_USERNAME, 'Username'), 'To users'
+               ),
+               'cc' => new external_multiple_structure(
+                   self::value_required(PARAM_USERNAME, 'Username'), 'Cc users', VALUE_OPTIONAL
+               ),
+               'bcc' => new external_multiple_structure(
+                   self::value_required(PARAM_USERNAME, 'Username'), 'Bcc users', VALUE_OPTIONAL
+               ),
+            )),
+        ));
+    }
+
+    public static function send_mail_returns() {
+        return null;
+    }
+
     /* Misc */
 
     public static function has_course($course) {

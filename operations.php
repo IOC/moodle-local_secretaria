@@ -401,6 +401,49 @@ class local_secretaria_operations {
         }
         return $result;
     }
+
+    function send_mail($message) {
+
+        $mnethostid = $this->moodle->mnet_host_id();
+
+        if (!$courseid = $this->moodle->get_course_id($message['course'])) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        $usernames = array_merge(array($message['sender']), $message['to']);
+        if (isset($message['cc'])) {
+            $usernames = array_merge($usernames, $message['cc']);
+        }
+        if (isset($message['bcc'])) {
+            $usernames = array_merge($usernames, $message['bcc']);
+        }
+        if (!$message['to'] or count($usernames) != count(array_unique($usernames))) {
+            throw new local_secretaria_exception('Invalid parameters');
+        }
+
+        $sender = false;
+        $to = array();
+        $cc = array();
+        $bcc = array();
+
+        foreach ($usernames as $username) {
+            if (!$userid = $this->moodle->get_user_id($mnethostid, $username)) {
+                throw new local_secretaria_exception('Unknown user');
+            }
+            if ($username == $message['sender']) {
+                $sender = $userid;
+            } else if (in_array($username, $message['to'])) {
+                $to[] = $userid;
+            } else if (in_array($username, $message['cc'])) {
+                $cc[] = $userid;
+            } else if (in_array($username, $message['bcc'])) {
+                $bcc[] = $userid;
+            }
+        }
+
+        $this->moodle->send_mail($sender, $courseid, $message['subject'],
+                                 $message['content'], $to, $cc, $bcc);
+    }
 }
 
 interface local_secretaria_moodle {
@@ -433,6 +476,7 @@ interface local_secretaria_moodle {
     function mnet_localhost_id();
     function role_assignment_exists($courseid, $userid, $roleid);
     function rollback_transaction(Exception $e);
+    function send_mail($sender, $courseid, $subject, $content, $to, $cc, $bcc);
     function start_transaction();
     function update_password($userid, $password);
     function update_record($table, $record);

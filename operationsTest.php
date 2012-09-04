@@ -990,7 +990,6 @@ class HasCourseTest extends OperationTest {
 }
 
 
-
 class GetCoursesTest extends OperationTest {
 
     function test() {
@@ -1016,5 +1015,72 @@ class GetCoursesTest extends OperationTest {
         $result = $this->operations->get_courses();
 
         $this->assertThat($result, $this->equalTo(array()));
+    }
+}
+
+
+class SendMailTest extends OperationTest {
+
+    function setUp() {
+        parent::setUp();
+        $this->message = array(
+            'sender' => 'user1',
+            'course' => 'course1',
+            'subject' => 'subject text',
+            'content' => 'content text',
+            'to' => array('user2'),
+        );
+        $this->having_mnet_host_id(101);
+    }
+
+    function test() {
+        $this->message['cc'] = array('user3', 'user4');
+        $this->message['bcc'] = array('user5');
+        $this->having_course_id('course1', 201);
+        for ($i = 1; $i <= 5; $i++) {
+            $this->having_user_id(101, 'user' . $i, 300 + $i);
+        }
+        $this->moodle->shouldReceive('send_mail')
+            ->with(301, 201, 'subject text', 'content text',
+                   array(302), array(303, 304), array(305))
+            ->once();
+
+        $this->operations->send_mail($this->message);
+    }
+
+    function test_unknown_course() {
+        $this->having_user_id(101, 'user1', 301);
+        $this->having_user_id(101, 'user2', 302);
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+
+        $this->operations->send_mail($this->message);
+    }
+
+    function test_unknown_user() {
+        $this->having_course_id('course1', 201);
+        $this->setExpectedException('local_secretaria_exception', 'Unknown user');
+
+        $this->operations->send_mail($this->message);
+    }
+
+    function test_duplicate_user() {
+        $this->message['cc'] = array('user1');
+        $this->having_course_id('course1', 201);
+        $this->having_user_id(101, 'user1', 301);
+        $this->having_user_id(101, 'user2', 302);
+
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+
+        $this->operations->send_mail($this->message);
+    }
+
+    function test_no_recipient() {
+        $this->message['to'] = array();
+        $this->having_course_id('course1', 201);
+        $this->having_user_id(101, 'user1', 301);
+
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+
+        $this->operations->send_mail($this->message);
     }
 }

@@ -146,6 +146,15 @@ $functions = array(
         'type'        => 'read',
     ),
 
+    'secretaria_send_mail' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'send_mail',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Send mail',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'write',
+    ),
+
     'secretaria_has_course' => array(
         'classname'   => 'moodle_local_secretaria_external',
         'methodname'  => 'has_course',

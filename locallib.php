@@ -279,6 +279,26 @@ class local_secretaria_moodle_22 implements local_secretaria_moodle {
         }
     }
 
+    function send_mail($sender, $courseid, $subject, $content, $to, $cc, $bcc) {
+        global $CFG;
+
+        require_once($CFG->dirroot . '/local/mail/message.class.php');
+
+        $message = local_mail_message::create($sender, $courseid, $subject, $content, FORMAT_HTML);
+
+        foreach ($to as $userid) {
+            $message->add_recipient('to', $userid);
+        }
+        foreach ($cc as $userid) {
+            $message->add_recipient('cc', $userid);
+        }
+        foreach ($bcc as $userid) {
+            $message->add_recipient('bcc', $userid);
+        }
+
+        $message->send();
+    }
+
     function start_transaction() {
         global $DB;
         if ($this->transaction) {
