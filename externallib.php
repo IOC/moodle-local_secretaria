@@ -14,7 +14,7 @@ class moodle_local_secretaria_external extends external_api {
         require_once($CFG->dirroot . '/local/secretaria/locallib.php');
         require_capability('local/secretaria:manage', get_context_instance(CONTEXT_SYSTEM));
 
-        $moodle = new local_secretaria_moodle_22();
+        $moodle = new local_secretaria_moodle_2x();
         $operations = new local_secretaria_operations($moodle);
         if (!is_callable(array($operations, $name))) {
             throw new Exception('Unknown function');

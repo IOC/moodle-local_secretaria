@@ -8,7 +8,7 @@ require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->dirroot . '/grade/querylib.php');
 require_once($CFG->dirroot . '/local/secretaria/operations.php');
 
-class local_secretaria_moodle_22 implements local_secretaria_moodle {
+class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
     private $mnethostid;
     private $transaction;
@@ -55,20 +55,19 @@ class local_secretaria_moodle_22 implements local_secretaria_moodle {
     function delete_role_assignment($courseid, $userid, $roleid) {
         global $DB;
 
-        $conditions = array('enrol' => 'secretaria', 'courseid' => $courseid);
-        $enrol = $DB->get_record('enrol', $conditions, '*', MUST_EXIST);
         $context = context_course::instance($courseid);
 
-        role_unassign($roleid, $userid, $context->id, 'enrol_secretaria', $enrol->id);
+        role_unassign($roleid, $userid, $context->id);
 
         $conditions = array(
-            'component' => 'enrol_secretaria',
-            'itemid' => $enrol->id,
             'contextid' => $cotnext->id,
             'userid' => $userid,
         );
+
         if (!$DB->record_exists('role_assignments', $conditions)) {
-            $plugin = enrol_get_plugin('secretaria');
+            $conditions = array('enrol' => 'manual', 'courseid' => $courseid);
+            $enrol = $DB->get_record('enrol', $conditions, '*', MUST_EXIST);
+            $plugin = enrol_get_plugin('manual');
             $plugin->unenrol_user($enrol, $userid);
         }
     }
@@ -111,25 +110,28 @@ class local_secretaria_moodle_22 implements local_secretaria_moodle {
          global $DB;
 
          $sql = 'SELECT ra.id, u.username AS user, r.shortname AS role'
-             . ' FROM {enrol} e'
-             . ' JOIN {user_enrolments} ue ON ue.enrolid = e.id'
-             . ' JOIN {role_assignments} ra ON ra.itemid = e.id'
-             . ' JOIN {context} ct ON ct.id = ra.contextid'
-             . ' JOIN {user} u ON u.id = ra.userid'
-             . ' JOIN {role} r ON r.id = ra.roleid'
-             . ' WHERE ue.userid = ra.userid'
-             . ' AND ct.instanceid = e.courseid'
+             . ' FROM {context} ct, {enrol} e, {role} r, {role_assignments} ra,'
+             . '      {user} u, {user_enrolments} ue'
+             . ' WHERE ct.contextlevel = :contextlevel'
+             . ' AND ct.instanceid = :courseid'
+             . ' AND e.courseid = ct.instanceid'
              . ' AND e.enrol = :enrol'
-             . ' AND e.courseid = :courseid'
              . ' AND ra.component = :component'
-             . ' AND ct.contextlevel = :contextlevel'
-             . ' AND u.mnethostid = :mnethostid';
+             . ' AND ra.contextid = ct.id'
+             . ' AND ra.itemid = :itemid'
+             . ' AND ra.roleid = r.id'
+             . ' AND ra.userid = u.id'
+             . ' AND ra.userid = ue.userid'
+             . ' AND u.mnethostid = :mnethostid'
+             . ' AND ue.enrolid = e.id'
+             . ' AND ue.userid = u.id';
 
          return $DB->get_records_sql($sql, array(
-             'enrol' => 'secretaria',
-             'courseid' => $courseid,
-             'component' => 'enrol_secretaria',
+             'component' => '',
              'contextlevel' => CONTEXT_COURSE,
+             'courseid' => $courseid,
+             'enrol' => 'manual',
+             'itemid' => 0,
              'mnethostid' => $mnethostid,
          ));
      }
@@ -138,24 +140,26 @@ class local_secretaria_moodle_22 implements local_secretaria_moodle {
          global $DB;
 
          $sql = 'SELECT ra.id, c.shortname AS course, r.shortname AS role'
-             . ' FROM {role_assignments} ra'
-             . ' JOIN {user_enrolments} ue ON ue.enrolid = ra.itemid'
-             . ' JOIN {enrol} e ON e.id = ra.itemid'
-             . ' JOIN {context} ct ON ct.id = ra.contextid'
-             . ' JOIN {course} c ON c.id = ct.instanceid'
-             . ' JOIN {role} r ON r.id = ra.roleid'
-             . ' WHERE ra.component = :component'
-             . ' AND ra.userid = :userid'
-             . ' AND ue.userid = ra.userid'
+             . ' FROM {context} ct, {course} c, {enrol} e, {role} r,'
+             . '      {role_assignments} ra, {user_enrolments} ue'
+             . ' WHERE ct.contextlevel = :contextlevel'
+             . ' AND ct.instanceid = c.id'
+             . ' AND e.courseid = c.id'
              . ' AND e.enrol = :enrol'
-             . ' AND ct.contextlevel = :contextlevel'
-             . ' AND c.id = e.courseid';
+             . ' AND ra.component = :component'
+             . ' AND ra.contextid = ct.id'
+             . ' AND ra.itemid = :itemid'
+             . ' AND ra.roleid = r.id'
+             . ' AND ra.userid = :userid'
+             . ' AND ue.enrolid = e.id'
+             . ' AND ue.userid = ra.userid';
 
          return $DB->get_records_sql($sql, array(
-             'component' => 'enrol_secretaria',
-             'enrol' => 'secretaria',
-             'userid' => $userid,
+             'component' => '',
              'contextlevel' => CONTEXT_COURSE,
+             'enrol' => 'manual',
+             'itemid' => 0,
+             'userid' => $userid,
          ));
      }
 
@@ -231,8 +235,8 @@ class local_secretaria_moodle_22 implements local_secretaria_moodle {
      function insert_role_assignment($courseid, $userid, $roleid) {
          global $DB;
 
-         $plugin = enrol_get_plugin('secretaria');
-         $conditions = array('enrol' => 'secretaria', 'courseid' => $courseid);
+         $plugin = enrol_get_plugin('manual');
+         $conditions = array('enrol' => 'manual', 'courseid' => $courseid);
          $enrol = $DB->get_record('enrol', $conditions, '*', MUST_EXIST);
          $plugin->enrol_user($enrol, $userid, $roleid);
      }
@@ -250,26 +254,27 @@ class local_secretaria_moodle_22 implements local_secretaria_moodle {
          global $DB;
 
          $sql = 'SELECT ra.id'
-             . ' FROM {role_assignments} ra'
-             . ' JOIN {enrol} e ON e.id = ra.itemid'
-             . ' JOIN {user_enrolments} ue ON ue.enrolid = e.id'
-             . ' JOIN {context} ct ON ct.id = ra.contextid'
-             . ' WHERE ue.userid = ra.userid'
+             . ' FROM {context} ct, {enrol} e, {role_assignments} ra, {user_enrolments} ue'
+             . ' WHERE ct.contextlevel = :contextlevel'
+             . ' AND ct.instanceid = :courseid'
              . ' AND e.courseid = ct.instanceid'
-             . ' AND ra.component = :component'
-             . ' AND ra.userid = :userid'
-             . ' AND ra.roleid = :roleid'
              . ' AND e.enrol = :enrol'
-             . ' AND e.courseid = :courseid'
-             . ' AND ct.contextlevel = :contextlevel';
+             . ' AND ra.component = :component'
+             . ' AND ra.contextid = ct.id'
+             . ' AND ra.itemid = :itemid'
+             . ' AND ra.roleid = :roleid'
+             . ' AND ra.userid = :userid'
+             . ' AND ue.enrolid = e.id'
+             . ' AND ue.userid = ra.userid';
 
          return $DB->record_exists_sql($sql, array(
-             'component' => 'enrol_secretaria',
-             'userid' => $userid,
+             'component' => '',
+             'contextlevel' => CONTEXT_COURSE,
+             'courseid' => $courseid,
+             'enrol' => 'manual',
+             'itemid' => 0,
              'roleid' => $roleid,
-             'enrol' => 'secretaria',
-            'courseid' => $courseid,
-            'contextlevel' => CONTEXT_COURSE,
+             'userid' => $userid,
         ));
     }
 
