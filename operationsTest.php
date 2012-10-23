@@ -973,7 +973,197 @@ class GetUserGradesTest extends OperationTest {
     }
 }
 
-/* Misc */
+/* Surveys */
+
+class GetSurveyTemplatesTest extends OperationTest {
+
+    function test() {
+        $records = array(
+            (object) array('id' => 201, 'name' => 'Survey 1', 'idnumber' => 'S1'),
+            (object) array('id' => 202, 'name' => 'Survey 2', 'idnumber' => 'S2'),
+            (object) array('id' => 203, 'name' => 'Survey 3', 'idnumber' => 'S3'),
+            (object) array('id' => 204, 'name' => 'Survey 4', 'idnumber' => ''),
+        );
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_survey_templates')->with(101)->andReturn($records);
+
+        $result = $this->operations->get_survey_templates('course1');
+
+        $this->assertThat($result, $this->equalTo(array(
+            array('idnumber' => 'S1', 'name' => 'Survey 1'),
+            array('idnumber' => 'S2', 'name' => 'Survey 2'),
+            array('idnumber' => 'S3', 'name' => 'Survey 3'),
+        )));
+    }
+
+    function test_unknown_course() {
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+        $this->operations->get_survey_templates('course1');
+    }
+}
+
+class CreateSurveyTest extends OperationTest {
+
+    function setUp() {
+        parent::setUp();
+        $this->properties = array(
+            'course' => 'course2',
+            'section' => 7,
+            'idnumber' => 'S2',
+            'name' => 'Survey 2',
+            'summary' => 'Summary 2',
+            'template' => array(
+                'course' => 'course1',
+                'idnumber' => 'S1',
+            ),
+        );
+    }
+
+    function test() {
+        $this->having_course_id('course1', 101);
+        $this->having_course_id('course2', 102);
+        $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
+        $this->moodle->shouldReceive('get_survey_id')->with(101, 'S1')->andReturn(201);
+        $this->moodle->shouldReceive('get_survey_id')->with(102, 'S2')->andReturn(false);
+        $this->moodle->shouldReceive('start_transaction')->once()->ordered();
+        $this->moodle->shouldReceive('create_survey')
+            ->with(102, 7, 'S2', 'Survey 2', 'Summary 2', 0, 0, 201)
+            ->once()->ordered();
+        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
+
+        $this->operations->create_survey($this->properties);
+    }
+
+    function test_opendate() {
+        $this->properties['opendate'] = array('year' => 2012, 'month' => 10, 'day' => 22);
+        $this->having_course_id('course1', 101);
+        $this->having_course_id('course2', 102);
+        $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
+        $this->moodle->shouldReceive('get_survey_id')->with(101, 'S1')->andReturn(201);
+        $this->moodle->shouldReceive('get_survey_id')->with(102, 'S2')->andReturn(false);
+        $this->moodle->shouldReceive('make_timestamp')->with(2012, 10, 22)->andReturn(1234567890);
+        $this->moodle->shouldReceive('start_transaction')->once()->ordered();
+        $this->moodle->shouldReceive('create_survey')
+            ->with(102, 7, 'S2', 'Survey 2', 'Summary 2', 1234567890, 0, 201)
+            ->once()->ordered();
+        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
+
+        $this->operations->create_survey($this->properties);
+    }
+
+    function test_closedate() {
+        $this->properties['closedate'] = array('year' => 2012, 'month' => 10, 'day' => 22);
+        $this->having_course_id('course1', 101);
+        $this->having_course_id('course2', 102);
+        $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
+        $this->moodle->shouldReceive('get_survey_id')->with(101, 'S1')->andReturn(201);
+        $this->moodle->shouldReceive('get_survey_id')->with(102, 'S2')->andReturn(false);
+        $this->moodle->shouldReceive('make_timestamp')
+            ->with(2012, 10, 22, 23, 55)->andReturn(1234567890);
+        $this->moodle->shouldReceive('start_transaction')->once()->ordered();
+        $this->moodle->shouldReceive('create_survey')
+            ->with(102, 7, 'S2', 'Survey 2', 'Summary 2', 0, 1234567890, 201)
+            ->once()->ordered();
+        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
+
+        $this->operations->create_survey($this->properties);
+    }
+
+    function test_unknown_course() {
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+
+        $this->operations->create_survey($this->properties);
+    }
+
+    function test_unknown_section() {
+        $this->having_course_id('course2', 102);
+        $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(false);
+        $this->setExpectedException('local_secretaria_exception', 'Unknown section');
+
+        $this->operations->create_survey($this->properties);
+    }
+
+    function test_blank_idnumber() {
+        $this->properties['idnumber'] = '';
+        $this->having_course_id('course2', 102);
+        $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+
+        $this->operations->create_survey($this->properties);
+    }
+
+    function test_duplicate_idnumber() {
+        $this->properties['idnumber'] = 'S2';
+        $this->having_course_id('course1', 101);
+        $this->having_course_id('course2', 102);
+        $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
+        $this->moodle->shouldReceive('get_survey_id')->with(102, 'S2')->andReturn(202);
+        $this->setExpectedException('local_secretaria_exception', 'Duplicate idnumber');
+
+        $this->operations->create_survey($this->properties);
+    }
+
+    function test_blank_name() {
+        $this->properties['name'] = '';
+        $this->having_course_id('course2', 102);
+        $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+
+        $this->operations->create_survey($this->properties);
+    }
+
+    function test_blank_summary() {
+        $this->properties['summary'] = '';
+        $this->having_course_id('course2', 102);
+        $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+
+        $this->operations->create_survey($this->properties);
+    }
+
+    function test_blank_template_course() {
+        $this->properties['template']['course'] = '';
+        $this->having_course_id('course2', 102);
+        $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+
+        $this->operations->create_survey($this->properties);
+    }
+
+    function test_blank_template_idnumber() {
+        $this->properties['template']['idnumber'] = '';
+        $this->having_course_id('course1', 101);
+        $this->having_course_id('course2', 102);
+        $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+
+        $this->operations->create_survey($this->properties);
+    }
+
+    function test_unknown_template_course() {
+        $this->having_course_id('course1', false);
+        $this->having_course_id('course2', 102);
+        $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
+        $this->moodle->shouldReceive('get_survey_id')->with(102, 'S2')->andReturn(false);
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+
+        $this->operations->create_survey($this->properties);
+    }
+
+    function test_unknown_survey() {
+        $this->having_course_id('course1', 101);
+        $this->having_course_id('course2', 102);
+        $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
+        $this->moodle->shouldReceive('get_survey_id')->with(101, 'S1')->andReturn(false);
+        $this->moodle->shouldReceive('get_survey_id')->with(102, 'S2')->andReturn(false);
+
+        $this->setExpectedException('local_secretaria_exception', 'Unknown survey');
+
+        $this->operations->create_survey($this->properties);
+    }
+}
+
+/* Control */
 
 class HasCourseTest extends OperationTest {
 
@@ -988,7 +1178,6 @@ class HasCourseTest extends OperationTest {
         $this->assertThat($result, $this->isFalse());
     }
 }
-
 
 class GetCoursesTest extends OperationTest {
 
@@ -1018,6 +1207,7 @@ class GetCoursesTest extends OperationTest {
     }
 }
 
+/* Misc */
 
 class SendMailTest extends OperationTest {
 

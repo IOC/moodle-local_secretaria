@@ -29,7 +29,6 @@ class local_secretaria_operations {
         );
     }
 
-
     function create_user($properties) {
         if (empty($properties['username']) or
             empty($properties['firstname']) or
@@ -386,7 +385,78 @@ class local_secretaria_operations {
         return $result;
     }
 
-    /* Misc */
+    /* Surveys */
+
+    function get_survey_templates($course) {
+        if (!$courseid = $this->moodle->get_course_id($course)) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        $result = array();
+
+        if ($records = $this->moodle->get_survey_templates($courseid)) {
+            foreach ($records as $record) {
+                if ($record->idnumber) {
+                    $result[] = array('name' => $record->name, 'idnumber' => $record->idnumber);
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    function create_survey($properties) {
+        if (empty($properties['idnumber']) or
+            empty($properties['name']) or
+            empty($properties['summary']) or
+            empty($properties['template']['course']) or
+            empty($properties['template']['idnumber'])) {
+            throw new local_secretaria_exception('Invalid parameters');
+        }
+
+        if (!$courseid = $this->moodle->get_course_id($properties['course'])) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        if (!$this->moodle->section_exists($courseid, $properties['section'])) {
+            throw new local_secretaria_exception('Unknown section');
+        }
+
+        if ($this->moodle->get_survey_id($courseid, $properties['idnumber'])) {
+            throw new local_secretaria_exception('Duplicate idnumber');
+        }
+
+        if (!$templatecourseid = $this->moodle->get_course_id($properties['template']['course'])) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        if (!$templateid = $this->moodle->get_survey_id($templatecourseid,
+                                                        $properties['template']['idnumber'])) {
+            throw new local_secretaria_exception('Unknown survey');
+        }
+
+        $opendate = 0;
+        if (isset($properties['opendate'])) {
+            $opendate = $this->moodle->make_timestamp($properties['opendate']['year'],
+                                                      $properties['opendate']['month'],
+                                                      $properties['opendate']['day']);
+        }
+        $closedate = 0;
+        if (isset($properties['closedate'])) {
+            $closedate = $this->moodle->make_timestamp($properties['closedate']['year'],
+                                                       $properties['closedate']['month'],
+                                                       $properties['closedate']['day'],
+                                                       23, 55);
+        }
+
+        $this->moodle->start_transaction();
+        $this->moodle->create_survey($courseid, $properties['section'], $properties['idnumber'],
+                                     $properties['name'], $properties['summary'],
+                                     $opendate, $closedate, $templateid);
+        $this->moodle->commit_transaction();
+    }
+
+    /* Control */
 
     function has_course($shortname) {
         return (bool) $this->moodle->get_course_id($shortname);
@@ -401,6 +471,8 @@ class local_secretaria_operations {
         }
         return $result;
     }
+
+    /* Misc */
 
     function send_mail($message) {
 
@@ -449,6 +521,8 @@ class local_secretaria_operations {
 interface local_secretaria_moodle {
     function check_password($password);
     function commit_transaction();
+    function create_survey($courseid, $section, $name, $summary, $idnumber,
+                           $opendate, $closedate, $templateid);
     function create_user($auth, $mnethostid, $username, $password,
                          $firstname, $lastname, $email);
     function delete_user($record);
@@ -461,6 +535,8 @@ interface local_secretaria_moodle {
     function get_role_assignments_by_course($courseid, $mnethostid);
     function get_role_assignments_by_user($userid);
     function get_role_id($role);
+    function get_survey_id($courseid, $idnumber);
+    function get_survey_templates($courseid);
     function get_user_id($mnethostid, $username);
     function get_user_record($mnethostid, $username);
     function grade_get_course_grade($userid, $courseid);
@@ -472,10 +548,12 @@ interface local_secretaria_moodle {
     function groups_delete_group($groupid);
     function groups_remove_member($groupid, $userid);
     function insert_role_assignment($courseid, $userid, $roleid);
+    function make_timestamp($year, $month, $day, $hour=0, $minute=0, $second=0);
     function mnet_host_id();
     function mnet_localhost_id();
     function role_assignment_exists($courseid, $userid, $roleid);
     function rollback_transaction(Exception $e);
+    function section_exists($courseid, $section);
     function send_mail($sender, $courseid, $subject, $content, $to, $cc, $bcc);
     function start_transaction();
     function update_password($userid, $password);

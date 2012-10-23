@@ -1,11 +1,12 @@
 <?php
 
 require_once($CFG->libdir . '/enrollib.php');
+require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->libdir . '/grouplib.php');
+require_once($CFG->dirroot . '/course/lib.php');
+require_once($CFG->dirroot . '/grade/querylib.php');
 require_once($CFG->dirroot . '/group/lib.php');
 require_once($CFG->dirroot . '/user/lib.php');
-require_once($CFG->libdir . '/gradelib.php');
-require_once($CFG->dirroot . '/grade/querylib.php');
 require_once($CFG->dirroot . '/local/secretaria/operations.php');
 
 class local_secretaria_moodle_2x implements local_secretaria_moodle {
@@ -28,6 +29,59 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         } else {
             throw new local_secretaria_exception('Internal error');
         }
+    }
+
+    function create_survey($courseid, $section, $idnumber, $name, $summary,
+                           $opendate, $closedate, $templateid) {
+        global $CFG, $DB;
+        require_once($CFG->dirroot.'/mod/questionnaire/lib.php');
+        require_once($CFG->dirroot.'/mod/questionnaire/locallib.php');
+
+        $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
+        $context = context_course::instance($courseid);
+        $module = $DB->get_record('modules', array('name' => 'questionnaire'), '*', MUST_EXIST);
+
+        $qrecord = new stdClass;
+        $qrecord->course = $course->id;
+        $qrecord->name = $name;
+        $qrecord->intro = $summary;
+        $qrecord->introformat = FORMAT_HTML;
+        $qrecord->qtype = QUESTIONNAIREONCE;
+        $qrecord->respondenttype = 'anonymous';
+        $qrecord->resp_view = 0;
+        $qrecord->opendate = $opendate;
+        $qrecord->closedate = $closedate;
+        $qrecord->resume = 0;
+        $qrecord->navigate = 1; // not used
+        $qrecord->grade = 0;
+        $qrecord->timemodified = time();
+
+        // questionnaire_add_instance
+        $cm = new stdClass;
+        $qobject = new questionnaire(0, $qrecord, $course, $cm);
+        $qobject->add_survey($templateid);
+        $qobject->add_questions($templateid);
+        $qrecord->sid = $qobject->survey_copy($course->id);
+        $qrecord->id = $DB->insert_record('questionnaire', $qrecord);
+        $DB->set_field('questionnaire_survey', 'realm', 'private', array('id' => $qrecord->sid));
+        questionnaire_set_events($qrecord);
+
+        // modedit.php
+        $cm->course = $course->id;
+        $cm->instance = $qrecord->id;
+        $cm->section = $section;
+        $cm->visible = 0;
+        $cm->module = $module->id;
+        $cm->groupmode = !empty($course->groupmodeforce) ? $course->groupmode : 0;
+        $cm->groupingid = $course->defaultgroupingid;
+        $cm->groupmembersonly = 0;
+        $cm->idnumber = $idnumber;
+
+        $cm->coursemodule = add_course_module($cm);
+        $sectionid = add_mod_to_section($cm);
+        $DB->set_field('course_modules', 'section', $sectionid, array('id' => $cm->coursemodule));
+        set_coursemodule_visible($cm->coursemodule, $cm->visible);
+        rebuild_course_cache($course->id);
     }
 
     function create_user($auth, $mnethostid, $username, $password,
@@ -168,6 +222,45 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
          return $DB->get_field('role', 'id', array('shortname' => $role));
      }
 
+    function get_survey_id($courseid, $idnumber) {
+        global $DB;
+
+        $sql = 'SELECT q.sid'
+            . ' FROM {modules} m'
+            . ' JOIN {course_modules} cm ON cm.module = m.id'
+            . ' JOIN {questionnaire} q ON q.id = cm.instance'
+            . ' WHERE m.name = :module'
+            . ' AND cm.course = :courseid'
+            . ' AND cm.idnumber = :idnumber';
+
+        return $DB->get_field_sql($sql, array(
+            'module' => 'questionnaire',
+            'courseid' => $courseid,
+            'idnumber' => $idnumber,
+        ));
+    }
+
+    function get_survey_templates($courseid) {
+        global $DB;
+
+        $sql = 'SELECT q.id, q.name, cm.idnumber'
+            . ' FROM {modules} m'
+            . ' JOIN {course_modules} cm ON cm.module = m.id'
+            . ' JOIN {questionnaire} q ON q.id = cm.instance'
+            . ' JOIN {questionnaire_survey} qs ON qs.id = q.sid'
+            . ' WHERE m.name = :module'
+            . ' AND cm.course = :courseid'
+            . ' AND qs.realm = :realm'
+            . ' AND qs.status != :status';
+
+        return $DB->get_records_sql($sql, array(
+            'courseid' => $courseid,
+            'module' => 'questionnaire',
+            'realm' => 'template',
+            'status' => 4,
+        ));
+    }
+
      function get_user_id($mnethostid, $username) {
          global $DB;
          return $DB->get_field('user', 'id', array(
@@ -241,6 +334,10 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
          $plugin->enrol_user($enrol, $userid, $roleid);
      }
 
+    function make_timestamp($year, $month, $day, $hour=0, $minute=0, $second=0) {
+        return make_timestamp($year, $month, $day, $hour, $minute, $second);
+    }
+
      function mnet_host_id() {
          return (int) $this->mnethostid;
      }
@@ -282,6 +379,12 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         if ($this->transaction) {
             $this->transaction->rollback($e);
         }
+    }
+
+    function section_exists($courseid, $section) {
+        global $DB;
+        $conditions = array('course' => $courseid, 'section' => $section);
+        return $DB->record_exists('course_sections', $conditions);
     }
 
     function send_mail($sender, $courseid, $subject, $content, $to, $cc, $bcc) {

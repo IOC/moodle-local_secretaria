@@ -2,6 +2,8 @@
 
 $functions = array(
 
+    /* Users */
+
     'secretaria_get_user' => array(
         'classname'   => 'moodle_local_secretaria_external',
         'methodname'  => 'get_user',
@@ -38,6 +40,8 @@ $functions = array(
         'type'        => 'write',
     ),
 
+    /* Enrolments */
+
     'secretaria_get_course_enrolments' => array(
         'classname'   => 'moodle_local_secretaria_external',
         'methodname'  => 'get_course_enrolments',
@@ -73,6 +77,8 @@ $functions = array(
         'capabilities'=> 'local/secretaria:manage',
         'type'        => 'write',
     ),
+
+    /* Groups */
 
     'secretaria_get_groups' => array(
         'classname'   => 'moodle_local_secretaria_external',
@@ -128,6 +134,8 @@ $functions = array(
         'type'        => 'write',
     ),
 
+    /* Grades */
+
     'secretaria_get_course_grades' => array(
         'classname'   => 'moodle_local_secretaria_external',
         'methodname'  => 'get_course_grades',
@@ -146,6 +154,28 @@ $functions = array(
         'type'        => 'read',
     ),
 
+    /* Surveys */
+
+    'secretaria_get_survey_templates' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'get_survey_templates',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Get survey templates',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
+    ),
+
+    'secretaria_create_survey' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'create_survey',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Create survey',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'write',
+    ),
+
+    /* Misc */
+
     'secretaria_send_mail' => array(
         'classname'   => 'moodle_local_secretaria_external',
         'methodname'  => 'send_mail',
@@ -154,6 +184,8 @@ $functions = array(
         'capabilities'=> 'local/secretaria:manage',
         'type'        => 'write',
     ),
+
+    /* Control */
 
     'secretaria_has_course' => array(
         'classname'   => 'moodle_local_secretaria_external',

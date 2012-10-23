@@ -391,7 +391,62 @@ class moodle_local_secretaria_external extends external_api {
         );
     }
 
-    /* Mail */
+    /* Surveys */
+
+    public static function get_survey_templates($course) {
+        return self::execute('get_survey_templates', array('course' => $course));
+    }
+
+    public static function get_survey_templates_parameters() {
+        return new external_function_parameters(array(
+            'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+        ));
+    }
+
+    public static function get_survey_templates_returns() {
+        return new external_multiple_structure(
+            new external_single_structure(array(
+                'name' => self::value_required(PARAM_TEXT, 'Survey name'),
+                'idnumber' => self::value_required(PARAM_RAW, 'Survey idnumber'),
+            ))
+        );
+    }
+
+    public static function create_survey($properties) {
+        return self::execute('create_survey', array('properties' => $properties));
+    }
+
+    public static function create_survey_parameters() {
+        return new external_function_parameters(array(
+            'properties' => new external_single_structure(array(
+                'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+                'section' => self::value_required(PARAM_INT, 'Course section'),
+                'idnumber' => self::value_required(PARAM_RAW, 'Survey idnumber'),
+                'name' => self::value_required(PARAM_TEXT, 'Survey name'),
+                'summary' => self::value_required(PARAM_RAW, 'Survey summary'),
+                'opendate' => new external_single_structure(array(
+                   'year' => self::value_required(PARAM_INT, 'Open year'),
+                   'month' => self::value_required(PARAM_INT, 'Open month'),
+                   'day' => self::value_required(PARAM_INT, 'Open day'),
+                 ), '', VALUE_OPTIONAL),
+                'closedate' => new external_single_structure(array(
+                   'year' => self::value_required(PARAM_INT, 'Close year'),
+                   'month' => self::value_required(PARAM_INT, 'Close month'),
+                   'day' => self::value_required(PARAM_INT, 'Close day'),
+                 ), '', VALUE_OPTIONAL),
+                'template' => new external_single_structure(array(
+                   'course' => self::value_required(PARAM_TEXT, 'Template course shortname'),
+                   'idnumber' => self::value_required(PARAM_RAW, 'Template survey idnumber'),
+                )),
+            )),
+        ));
+    }
+
+    public static function create_survey_returns() {
+        return null;
+    }
+
+    /* Misc */
 
     public static function send_mail($message) {
         return self::execute('send_mail', array('message' => $message));
@@ -421,7 +476,7 @@ class moodle_local_secretaria_external extends external_api {
         return null;
     }
 
-    /* Misc */
+    /* Control */
 
     public static function has_course($course) {
         return self::execute('has_course', array('course' => $course));
