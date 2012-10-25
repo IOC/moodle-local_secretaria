@@ -1,6 +1,7 @@
 <?php
 
 class local_secretaria_exception extends Exception {
+    public $errorcode;
 }
 
 class local_secretaria_operations {

@@ -48,6 +48,10 @@ class moodle_local_secretaria_external extends external_api {
         return new external_value($type, $desc, VALUE_OPTIONAL, null, NULL_NOT_ALLOWED);
     }
 
+    private static function multiple_structure(external_description $content, $desc='') {
+        return new external_multiple_structure($content, $desc, VALUE_DEFAULT, array());
+    }
+
     /* Users */
 
     public static function get_user($username) {
@@ -141,7 +145,7 @@ class moodle_local_secretaria_external extends external_api {
     }
 
     public static function get_course_enrolments_returns() {
-        return new external_multiple_structure(
+        return self::multiple_structure(
             new external_single_structure(array(
                 'user' => self::value_required(PARAM_USERNAME, 'Username'),
                 'role' => self::value_required(PARAM_ALPHANUMEXT, 'Role shortname'),
@@ -160,7 +164,7 @@ class moodle_local_secretaria_external extends external_api {
     }
 
     public static function get_user_enrolments_returns() {
-        return new external_multiple_structure(
+        return self::multiple_structure(
             new external_single_structure(array(
                 'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
                 'role' => self::value_required(PARAM_ALPHANUMEXT, 'Role shortname'),
@@ -174,7 +178,7 @@ class moodle_local_secretaria_external extends external_api {
 
     public static function enrol_users_parameters() {
         return new external_function_parameters(array(
-            'enrolments' => new external_multiple_structure(
+            'enrolments' => self::multiple_structure(
                 new external_single_structure(array(
                     'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
                     'user' => self::value_required(PARAM_USERNAME, 'Username'),
@@ -194,7 +198,7 @@ class moodle_local_secretaria_external extends external_api {
 
     public static function unenrol_users_parameters() {
         return new external_function_parameters(array(
-            'enrolments' => new external_multiple_structure(
+            'enrolments' => self::multiple_structure(
                 new external_single_structure(array(
                     'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
                     'user' => self::value_required(PARAM_USERNAME, 'Username'),
@@ -221,7 +225,7 @@ class moodle_local_secretaria_external extends external_api {
     }
 
     public static function get_groups_returns() {
-        return new external_multiple_structure(
+        return self::multiple_structure(
             new external_single_structure(array(
                 'name' => self::value_required(PARAM_TEXT, 'Group name'),
                 'description' => self::value_null(PARAM_RAW, 'Group description'),
@@ -282,7 +286,7 @@ class moodle_local_secretaria_external extends external_api {
     }
 
     public static function get_group_members_returns() {
-        return new external_multiple_structure(
+        return self::multiple_structure(
             self::value_required(PARAM_USERNAME, 'Username')
         );
     }
@@ -299,7 +303,7 @@ class moodle_local_secretaria_external extends external_api {
         return new external_function_parameters(array(
             'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
             'name' => self::value_required(PARAM_TEXT, 'Group name'),
-            'users' => new external_multiple_structure(
+            'users' => self::multiple_structure(
                 self::value_required(PARAM_USERNAME, 'Username')
             ),
         ));
@@ -321,7 +325,7 @@ class moodle_local_secretaria_external extends external_api {
         return new external_function_parameters(array(
             'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
             'name' => self::value_required(PARAM_TEXT, 'Group name'),
-            'users' => new external_multiple_structure(
+            'users' => self::multiple_structure(
                 self::value_required(PARAM_USERNAME, 'Username')
             ),
         ));
@@ -343,20 +347,20 @@ class moodle_local_secretaria_external extends external_api {
     public static function get_course_grades_parameters() {
         return new external_function_parameters(array(
             'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
-            'users' => new external_multiple_structure(
+            'users' => self::multiple_structure(
                 self::value_required(PARAM_USERNAME, 'Username')
             ),
         ));
     }
 
     public static function get_course_grades_returns() {
-        return new external_multiple_structure(
+        return self::multiple_structure(
             new external_single_structure(array(
                 'type' => self::value_required(PARAM_ALPHA, 'Item type'),
                 'module' => self::value_null(PARAM_RAW, 'Item module'),
                 'idnumber' => self::value_null(PARAM_RAW, 'Item idnumber'),
                 'name' => self::value_null(PARAM_RAW, 'Item name'),
-                'grades' => new external_multiple_structure(
+                'grades' => self::multiple_structure(
                     new external_single_structure(array(
                         'user' => self::value_required(PARAM_USERNAME, 'Username'),
                         'grade' => self::value_required(PARAM_RAW, 'Grade'),
@@ -376,14 +380,14 @@ class moodle_local_secretaria_external extends external_api {
     public static function get_user_grades_parameters() {
         return new external_function_parameters(array(
             'user' => self::value_required(PARAM_USERNAME, 'Username'),
-            'courses' => new external_multiple_structure(
+            'courses' => self::multiple_structure(
                 self::value_required(PARAM_TEXT, 'Course shortname')
             ),
         ));
     }
 
     public static function get_user_grades_returns() {
-        return new external_multiple_structure(
+        return self::multiple_structure(
             new external_single_structure(array(
                 'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
                 'grade' => self::value_required(PARAM_RAW, 'Grade'),
@@ -404,7 +408,7 @@ class moodle_local_secretaria_external extends external_api {
     }
 
     public static function get_survey_templates_returns() {
-        return new external_multiple_structure(
+        return self::multiple_structure(
             new external_single_structure(array(
                 'name' => self::value_required(PARAM_TEXT, 'Survey name'),
                 'idnumber' => self::value_required(PARAM_RAW, 'Survey idnumber'),
@@ -459,14 +463,14 @@ class moodle_local_secretaria_external extends external_api {
                'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
                'subject' => self::value_required(PARAM_TEXT, 'Message subject'),
                'content' => self::value_required(PARAM_RAW, 'Message content'),
-               'to' => new external_multiple_structure(
+               'to' => self::multiple_structure(
                    self::value_required(PARAM_USERNAME, 'Username'), 'To users'
                ),
-               'cc' => new external_multiple_structure(
-                   self::value_required(PARAM_USERNAME, 'Username'), 'Cc users', VALUE_OPTIONAL
+               'cc' => self::multiple_structure(
+                   self::value_required(PARAM_USERNAME, 'Username'), 'Cc users'
                ),
-               'bcc' => new external_multiple_structure(
-                   self::value_required(PARAM_USERNAME, 'Username'), 'Bcc users', VALUE_OPTIONAL
+               'bcc' => self::multiple_structure(
+                   self::value_required(PARAM_USERNAME, 'Username'), 'Bcc users'
                ),
             )),
         ));
@@ -501,7 +505,7 @@ class moodle_local_secretaria_external extends external_api {
     }
 
     public static function get_courses_returns() {
-        return new external_multiple_structure(
+        return self::multiple_structure(
             self::value_required(PARAM_TEXT, 'Course shortname')
         );
     }
