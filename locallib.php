@@ -392,7 +392,8 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
         require_once($CFG->dirroot . '/local/mail/message.class.php');
 
-        $message = local_mail_message::create($sender, $courseid, $subject, $content, FORMAT_HTML);
+        $message = local_mail_message::create($sender, $courseid);
+        $message->save($subject, $content, FORMAT_HTML);
 
         foreach ($to as $userid) {
             $message->add_recipient('to', $userid);
