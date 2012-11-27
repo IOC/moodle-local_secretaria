@@ -228,7 +228,7 @@ class local_secretaria_operations {
         return $groups;
     }
 
-    function create_group($course, $name, $description) {
+    function create_group($course, $name, $description=null) {
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -239,7 +239,7 @@ class local_secretaria_operations {
             throw new local_secretaria_exception('Duplicate group');
         }
         $this->moodle->start_transaction();
-        $this->moodle->groups_create_group($courseid, $name, $description);
+        $this->moodle->groups_create_group($courseid, $name, $description ?: '');
         $this->moodle->commit_transaction();
     }
 
