@@ -27,7 +27,27 @@ class local_secretaria_operations {
             'lastname' => $record->lastname,
             'email' => $record->email,
             'picture' => $record->picture ? $pixurl : '',
+            'lastaccess' => (int) $record->lastaccess,
         );
+    }
+
+    function get_user_lastaccess($username) {
+        $mnethostid = $this->moodle->mnet_host_id();
+
+        if (!$userid = $this->moodle->get_user_id($mnethostid, $username)) {
+            throw new local_secretaria_exception('Unknown user');
+        }
+
+        $result = array();
+
+        if ($records = $this->moodle->get_user_lastaccess($userid)) {
+            foreach ($records as $record) {
+                $result[] = array('course' => $record->course,
+                                  'time' => (int) $record->time);
+            }
+        }
+
+        return $result;
     }
 
     function create_user($properties) {
@@ -539,6 +559,7 @@ interface local_secretaria_moodle {
     function get_survey_id($courseid, $idnumber);
     function get_survey_templates($courseid);
     function get_user_id($mnethostid, $username);
+    function get_user_lastaccess($userid);
     function get_user_record($mnethostid, $username);
     function grade_get_course_grade($userid, $courseid);
     function grade_get_grades($courseid, $itemtype, $itemmodule,

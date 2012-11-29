@@ -13,6 +13,15 @@ $functions = array(
         'type'        => 'read',
     ),
 
+    'secretaria_get_user_lastaccess' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'get_user_lastaccess',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Get user last access',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
+    ),
+
     'secretaria_create_user' => array(
         'classname'   => 'moodle_local_secretaria_external',
         'methodname'  => 'create_user',

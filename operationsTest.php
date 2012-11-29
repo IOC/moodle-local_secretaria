@@ -73,7 +73,8 @@ class GetUserTest extends OperationTest {
             'firstname' => 'First',
             'lastname' => 'Last',
             'email' => 'user@example.org',
-            'picture' => 1,
+            'picture' => '1',
+            'lastaccess' => '1234567890',
         );
         $this->having_mnet_host_id(101);
     }
@@ -91,6 +92,7 @@ class GetUserTest extends OperationTest {
             'lastname' => 'Last',
             'email' => 'user@example.org',
             'picture' => 'http://example.org/user/pix.php/201/f1.jpg',
+            'lastaccess' => 1234567890,
         )));
     }
 
@@ -108,6 +110,30 @@ class GetUserTest extends OperationTest {
     function test_unknown_user() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->get_user('user');
+    }
+}
+
+class GetUserLastAccessTest extends OperationTest {
+
+    function test() {
+        $this->having_mnet_host_id(101);
+        $this->having_user_id(101, 'user', 201);
+        $records = array((object) array('course' => 'CP1', 'time' => '1234567891'),
+                         (object) array('course' => 'CP2', 'time' => '1234567892'));
+        $this->moodle->shouldReceive('get_user_lastaccess')->with(201)->andReturn($records);
+
+        $result = $this->operations->get_user_lastaccess('user');
+
+        $this->assertThat($result, $this->equalTo(array(
+            array('course' => 'CP1', 'time' => 1234567891),
+            array('course' => 'CP2', 'time' => 1234567892),
+        )));
+    }
+
+    function test_unknown_user() {
+        $this->having_mnet_host_id(101);
+        $this->setExpectedException('local_secretaria_exception', 'Unknown user');
+        $this->operations->get_user_lastaccess('user');
     }
 }
 

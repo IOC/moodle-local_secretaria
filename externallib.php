@@ -71,7 +71,27 @@ class moodle_local_secretaria_external extends external_api {
             'lastname' => self::value_required(PARAM_NOTAGS, 'Last name'),
             'email' => self::value_required(PARAM_EMAIL, 'Email address'),
             'picture' => self::value_null(PARAM_LOCALURL, 'Picture URL'),
+            'lastaccess' => self::value_required(PARAM_INT, 'Last access'),
         ));
+    }
+
+    public static function get_user_lastaccess($username) {
+        return self::execute('get_user_lastaccess', array('username' => $username));
+    }
+
+    public static function get_user_lastaccess_parameters() {
+        return new external_function_parameters(
+            array('username' => self::value_required(PARAM_USERNAME, 'Username'))
+        );
+    }
+
+    public static function get_user_lastaccess_returns() {
+        return self::multiple_structure(
+            new external_single_structure(array(
+                'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+                'time' => self::value_required(PARAM_INT, 'Access lime'),
+            ))
+        );
     }
 
     public static function create_user($properties) {

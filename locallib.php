@@ -270,6 +270,17 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
          ));
      }
 
+     function get_user_lastaccess($userid) {
+         global $DB;
+
+         $sql = 'SELECT l.id, c.shortname AS course, l.timeaccess AS time'
+             . ' FROM {user_lastaccess} l'
+             . ' JOIN {course} c ON c.id = l.courseid'
+             . ' WHERE l.userid = :userid';
+
+        return $DB->get_records_sql($sql, array('userid' => $userid));
+     }
+
      function get_user_record($mnethostid, $username) {
          global $DB;
          return $DB->get_record('user', array(
