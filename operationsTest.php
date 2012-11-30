@@ -663,17 +663,6 @@ class CreateGroupTest extends OperationTest {
         $this->operations->create_group('course1', '', 'Group 1');
     }
 
-    function test_optional_description() {
-        $this->having_course_id('course1', 101);
-        $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('groups_create_group')
-            ->with(101, 'group1', '')
-            ->once()->ordered();
-        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
-
-        $this->operations->create_group('course1', 'group1');
-    }
-
     function test_duplicate_group() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
