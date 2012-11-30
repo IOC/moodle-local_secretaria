@@ -355,6 +355,21 @@ class moodle_local_secretaria_external extends external_api {
         return null;
     }
 
+    public static function get_user_groups($user, $course) {
+        return self::execute('get_user_groups', array('user' => $user, 'course' => $course));
+    }
+
+    public static function get_user_groups_parameters() {
+        return new external_function_parameters(array(
+            'user' => self::value_required(PARAM_USERNAME, 'Username'),
+            'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+        ));
+    }
+
+    public static function get_user_groups_returns() {
+        return self::multiple_structure(self::value_required(PARAM_TEXT, 'Group name'));
+    }
+
     /* Grades */
 
     public static function get_course_grades($course, $users) {

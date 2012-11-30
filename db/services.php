@@ -143,6 +143,15 @@ $functions = array(
         'type'        => 'write',
     ),
 
+    'secretaria_get_user_groups' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'get_user_groups',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Get user groups',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
+    ),
+
     /* Grades */
 
     'secretaria_get_course_grades' => array(

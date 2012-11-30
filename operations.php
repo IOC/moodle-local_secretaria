@@ -238,7 +238,7 @@ class local_secretaria_operations {
 
         $groups = array();
 
-        if ($records = $this->moodle->get_groups($courseid)) {
+        if ($records = $this->moodle->groups_get_all_groups($courseid)) {
             foreach ($records as $record) {
                 $groups[] = array('name' => $record->name,
                                   'description' => $record->description);
@@ -335,6 +335,27 @@ class local_secretaria_operations {
         }
 
         $this->moodle->commit_transaction();
+    }
+
+    function get_user_groups($user, $course) {
+        $mnethostid = $this->moodle->mnet_host_id();
+
+        if (!$userid = $this->moodle->get_user_id($mnethostid, $user)) {
+            throw new local_secretaria_exception('Unknown user');
+        }
+        if (!$courseid = $this->moodle->get_course_id($course)) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        $groups = array();
+
+        if ($records = $this->moodle->groups_get_all_groups($courseid, $userid)) {
+            foreach ($records as $record) {
+                $groups[] = $record->name;
+            }
+        }
+
+        return $groups;
     }
 
     /* Grades */
@@ -552,7 +573,6 @@ interface local_secretaria_moodle {
     function get_courses();
     function get_group_id($courseid, $name);
     function get_group_members($groupid, $mnethostid);
-    function get_groups($courseid);
     function get_role_assignments_by_course($courseid, $mnethostid);
     function get_role_assignments_by_user($userid);
     function get_role_id($role);
@@ -568,6 +588,7 @@ interface local_secretaria_moodle {
     function groups_add_member($groupid, $userid);
     function groups_create_group($courseid, $name, $description);
     function groups_delete_group($groupid);
+    function groups_get_all_groups($courseid, $userid=0);
     function groups_remove_member($groupid, $userid);
     function insert_role_assignment($courseid, $userid, $roleid);
     function make_timestamp($year, $month, $day, $hour=0, $minute=0, $second=0);

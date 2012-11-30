@@ -609,16 +609,11 @@ class GetGroupsTest extends OperationTest {
 
     function test() {
         $records = array(
-            (object) array('id' => 201,
-                           'name' => 'group1',
-                           'description' => 'first group'),
-            (object) array('id' => 202,
-                           'name' => 'group2',
-                           'description' => 'second group'),
+            (object) array('id' => 201, 'name' => 'group1', 'description' => 'first group'),
+            (object) array('id' => 202, 'name' => 'group2', 'description' => 'second group'),
         );
         $this->having_course_id('course1', 101);
-        $this->moodle->shouldReceive('get_groups')
-            ->with(101)->andReturn($records);
+        $this->moodle->shouldReceive('groups_get_all_groups')->with(101)->andReturn($records);
 
         $result = $this->operations->get_groups('course1');
 
@@ -630,8 +625,7 @@ class GetGroupsTest extends OperationTest {
 
     function test_no_groups() {
         $this->having_course_id('course1', 101);
-        $this->moodle->shouldReceive('get_groups')
-            ->with(101)->andReturn(false);
+        $this->moodle->shouldReceive('groups_get_all_groups')->with(101)->andReturn(false);
 
         $result = $this->operations->get_groups('course1');
 
@@ -839,6 +833,50 @@ class RemoveGroupMembersTest extends OperationTest {
         $this->moodle->shouldReceive('start_transaction')->once();
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->remove_group_members('course1', 'group1', array('user1'));
+    }
+}
+
+class GetUserGroupsTest extends OperationTest {
+
+    function test() {
+        $this->having_mnet_host_id(101);
+        $this->having_user_id(101, 'user1', 201);
+        $this->having_course_id('course1', 301);
+        $records = array((object) array('id' => 401, 'name' => 'group1'),
+                         (object) array('id' => 402, 'name' => 'group2'));
+        $this->moodle->shouldReceive('groups_get_all_groups')->with(301, 201)->andReturn($records);
+
+        $result = $this->operations->get_user_groups('user1', 'course1');
+
+        $this->assertThat($result, $this->equalTo(array('group1', 'group2')));
+    }
+
+    function test_unknown_user() {
+        $this->having_mnet_host_id(101);
+        $this->having_group_id(101, 'group1', 201);
+        $this->having_course_id('course1', 301);
+        $this->setExpectedException('local_secretaria_exception', 'Unknown user');
+
+        $this->operations->get_user_groups('user1', 'course1');
+    }
+
+    function test_unknown_course() {
+        $this->having_mnet_host_id(101);
+        $this->having_user_id(101, 'user1', 201);
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+
+        $this->operations->get_user_groups('user1', 'course1');
+    }
+
+    function test_no_groups() {
+        $this->having_mnet_host_id(101);
+        $this->having_user_id(101, 'user1', 201);
+        $this->having_course_id('course1', 301);
+        $this->moodle->shouldReceive('groups_get_all_groups')->with(301, 201)->andReturn(false);
+
+        $result = $this->operations->get_user_groups('user1', 'course1');
+
+        $this->assertThat($result, $this->equalTo(array()));
     }
 }
 

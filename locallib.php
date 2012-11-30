@@ -156,11 +156,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-    function get_groups($courseid) {
-        return groups_get_all_groups($courseid);
-     }
-
-     function get_role_assignments_by_course($courseid, $mnethostid) {
+    function get_role_assignments_by_course($courseid, $mnethostid) {
          global $DB;
 
          $sql = 'SELECT ra.id, u.username AS user, r.shortname AS role'
@@ -330,6 +326,10 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
      function groups_delete_group($groupid) {
          groups_delete_group($groupid);
+     }
+
+     function groups_get_all_groups($courseid, $userid=0) {
+        return groups_get_all_groups($courseid, $userid);
      }
 
      function groups_remove_member($groupid, $userid) {
