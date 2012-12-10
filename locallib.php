@@ -19,7 +19,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
     }
 
     function check_password($password) {
-        return check_password_policy($password);
+        return check_password_policy($password, $errormsg);
     }
 
     function commit_transaction() {
@@ -92,7 +92,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $user->mnethostid = $mnethostid;
         $user->username = $username;
         if ($password) {
-            $user['password'] = $password;
+            $user->password = $password;
         }
         $user->firstname = $firstname;
         $user->lastname = $lastname;
