@@ -37,27 +37,19 @@ abstract class OperationTest extends PHPUnit_Framework_TestCase {
             ->with($courseid, $groupname)->andReturn($groupid);
     }
 
-    protected function having_mnet_localhost_id($id) {
-        $this->moodle->shouldReceive('mnet_localhost_id')->andReturn($id);
-    }
-
-    protected function having_mnet_host_id($id) {
-        $this->moodle->shouldReceive('mnet_host_id')->andReturn($id);
-    }
-
     protected function having_role_id($shortname, $roleid) {
         $this->moodle->shouldReceive('get_role_id')
             ->with($shortname)->andReturn($roleid);
     }
 
-    protected function having_user_id($mnethostid, $username, $userid) {
+    protected function having_user_id($username, $userid) {
         $this->moodle->shouldReceive('get_user_id')
-            ->with($mnethostid, $username)->andReturn($userid);
+            ->with($username)->andReturn($userid);
     }
 
-    protected function having_user_record($mnethostid, $username, $record) {
+    protected function having_user_record($username, $record) {
         $this->moodle->shouldReceive('get_user_record')
-            ->with($mnethostid, $username)->andReturn($record);
+            ->with($username)->andReturn($record);
     }
 }
 
@@ -76,11 +68,10 @@ class GetUserTest extends OperationTest {
             'picture' => '1',
             'lastaccess' => '1234567890',
         );
-        $this->having_mnet_host_id(101);
     }
 
     function test() {
-        $this->having_user_record(101, 'user', $this->record);
+        $this->having_user_record('user', $this->record);
         $this->moodle->shouldReceive('user_picture_url')->with(201)
             ->andReturn('http://example.org/user/pix.php/201/f1.jpg');
 
@@ -98,7 +89,7 @@ class GetUserTest extends OperationTest {
 
     function test_no_picture() {
         $this->record->picture = 0;
-        $this->having_user_record(101, 'user', $this->record);
+        $this->having_user_record('user', $this->record);
         $this->moodle->shouldReceive('user_picture_url')->with(201)
             ->andReturn('http://example.org/user/pix.php/201/f1.jpg');
 
@@ -116,8 +107,7 @@ class GetUserTest extends OperationTest {
 class GetUserLastAccessTest extends OperationTest {
 
     function test() {
-        $this->having_mnet_host_id(101);
-        $this->having_user_id(101, 'user', 201);
+        $this->having_user_id('user', 201);
         $records = array((object) array('course' => 'CP1', 'time' => '1234567891'),
                          (object) array('course' => 'CP2', 'time' => '1234567892'));
         $this->moodle->shouldReceive('get_user_lastaccess')->with(201)->andReturn($records);
@@ -131,7 +121,6 @@ class GetUserLastAccessTest extends OperationTest {
     }
 
     function test_unknown_user() {
-        $this->having_mnet_host_id(101);
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->get_user_lastaccess('user');
     }
@@ -150,26 +139,12 @@ class CreateUserTest extends OperationTest {
         );
     }
 
-    function test_local() {
-        $this->having_mnet_localhost_id(101);
-        $this->having_mnet_host_id(101);
+    function test() {
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('check_password')
             ->with('abc123')->andReturn(true);
         $this->moodle->shouldReceive('create_user')
-            ->with('manual', 101, 'user1', 'abc123', 'First', 'Last', 'user1@example.org')
-            ->once()->ordered();
-        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
-
-        $this->operations->create_user($this->properties);
-    }
-
-    function test_remote() {
-        $this->having_mnet_localhost_id(101);
-        $this->having_mnet_host_id(102);
-        $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('create_user')
-            ->with('mnet', 102, 'user1', null, 'First', 'Last', 'user1@example.org')
+            ->with('manual', 'user1', 'abc123', 'First', 'Last', 'user1@example.org')
             ->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
@@ -178,8 +153,6 @@ class CreateUserTest extends OperationTest {
 
     function test_blank_username() {
         $this->properties['username'] = '';
-        $this->having_mnet_localhost_id(101);
-        $this->having_mnet_host_id(101);
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->create_user($this->properties);
@@ -187,8 +160,6 @@ class CreateUserTest extends OperationTest {
 
     function test_blank_firstname() {
         $this->properties['firstname'] = '';
-        $this->having_mnet_localhost_id(101);
-        $this->having_mnet_host_id(101);
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->create_user($this->properties);
@@ -196,25 +167,19 @@ class CreateUserTest extends OperationTest {
 
     function test_blank_lastname() {
         $this->properties['lastname'] = '';
-        $this->having_mnet_localhost_id(101);
-        $this->having_mnet_host_id(101);
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->create_user($this->properties);
     }
 
     function test_duplicate_username() {
-        $this->having_mnet_localhost_id(101);
-        $this->having_mnet_host_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Duplicate username');
 
         $this->operations->create_user($this->properties);
     }
 
     function test_invalid_password() {
-        $this->having_mnet_localhost_id(101);
-        $this->having_mnet_host_id(101);
         $this->moodle->shouldReceive('check_password')
             ->with('abc123')->andReturn(false);
         $this->setExpectedException('local_secretaria_exception', 'Invalid password');
@@ -233,10 +198,8 @@ class UpdateUserTest extends OperationTest {
             'lastname' => 'Last2',
             'email' => 'user2@example.org',
         );
-        $this->having_mnet_host_id(101);
-        $this->having_mnet_localhost_id(101);
-        $this->having_user_id(101, 'user1', 201);
-        $this->having_user_id(101, 'user2', false);
+        $this->having_user_id('user1', 201);
+        $this->having_user_id('user2', false);
         $this->moodle->shouldReceive('check_password')
             ->with('abc123')->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
@@ -256,36 +219,28 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_unknown_user() {
-        $this->having_mnet_host_id(101);
-        $this->having_mnet_localhost_id(101);
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
 
         $this->operations->update_user('user1', array('username' => 'user1'));
     }
 
     function test_blank_username() {
-        $this->having_mnet_host_id(101);
-        $this->having_mnet_localhost_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->update_user('user1', array('username' => ''));
     }
 
     function test_duplicate_username() {
-        $this->having_mnet_host_id(101);
-        $this->having_mnet_localhost_id(101);
-        $this->having_user_id(101, 'user1', 201);
-        $this->having_user_id(101, 'user2', 202);
+        $this->having_user_id('user1', 201);
+        $this->having_user_id('user2', 202);
         $this->setExpectedException('local_secretaria_exception', 'Duplicate username');
 
         $this->operations->update_user('user1', array('username' => 'user2'));
     }
 
     function test_same_username() {
-        $this->having_mnet_host_id(101);
-        $this->having_mnet_localhost_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
@@ -293,9 +248,7 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_password_only() {
-        $this->having_mnet_host_id(101);
-        $this->having_mnet_localhost_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->moodle->shouldReceive('check_password')
             ->with('abc123')->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
@@ -307,9 +260,7 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_invalid_password() {
-        $this->having_mnet_host_id(101);
-        $this->having_mnet_localhost_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->moodle->shouldReceive('check_password')
             ->with('abc123')->andReturn(false);
         $this->setExpectedException('local_secretaria_exception', 'Invalid password');
@@ -317,29 +268,15 @@ class UpdateUserTest extends OperationTest {
         $this->operations->update_user('user1', array('password' => 'abc123'));
     }
 
-    function test_password_remote() {
-        $this->having_mnet_host_id(102);
-        $this->having_mnet_localhost_id(101);
-        $this->having_user_id(102, 'user1', 201);
-        $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
-
-        $this->operations->update_user('user1', array('password' => 'abc123'));
-    }
-
     function test_blank_firstname() {
-        $this->having_mnet_host_id(101);
-        $this->having_mnet_localhost_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->update_user('user1', array('firstname' => ''));
     }
 
     function test_blank_lastname() {
-        $this->having_mnet_host_id(101);
-        $this->having_mnet_localhost_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->update_user('user1', array('lastname' => ''));
@@ -347,9 +284,7 @@ class UpdateUserTest extends OperationTest {
 
     function test_blank_email() {
         $record = (object) array('id' => 201, 'email' => '');
-        $this->having_mnet_host_id(101);
-        $this->having_mnet_localhost_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('update_record')
             ->with('user', Mockery::mustBe($record))->once()->ordered();
@@ -370,8 +305,7 @@ class DeleteUserTest extends OperationTest {
             'lastname' => 'Last2',
             'email' => 'user2@example.org',
         );
-        $this->having_mnet_host_id(101);
-        $this->having_user_record(101, 'user1', $record);
+        $this->having_user_record('user1', $record);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('delete_user')
             ->with(Mockery::mustBe($record))
@@ -382,7 +316,6 @@ class DeleteUserTest extends OperationTest {
     }
 
     function test_unknown_user() {
-        $this->having_mnet_host_id(101);
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
 
         $this->operations->delete_user('user1');
@@ -400,9 +333,8 @@ class GetCcourseEnrolmentsTest extends OperationTest {
         );
 
         $this->having_course_id('course1', 101);
-        $this->having_mnet_host_id(201);
         $this->moodle->shouldReceive('get_role_assignments_by_course')
-            ->with(101, 201)->andReturn($records);
+            ->with(101)->andReturn($records);
 
         $result = $this->operations->get_course_enrolments('course1');
 
@@ -414,9 +346,8 @@ class GetCcourseEnrolmentsTest extends OperationTest {
 
     function test_no_enrolments() {
         $this->having_course_id('course1', 101);
-        $this->having_mnet_host_id(201);
         $this->moodle->shouldReceive('get_role_assignments_by_course')
-            ->with(101, 201)->andReturn(array());
+            ->with(101)->andReturn(array());
 
         $result = $this->operations->get_course_enrolments('course1');
 
@@ -424,7 +355,6 @@ class GetCcourseEnrolmentsTest extends OperationTest {
     }
 
     function test_unknown_course() {
-        $this->having_mnet_host_id(201);
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_course_enrolments('course1');
     }
@@ -437,8 +367,7 @@ class GetUserEnrolmentsTest extends OperationTest {
             (object) array('id' => 301, 'course' => 'course1', 'role' => 'role1'),
             (object) array('id' => 302, 'course' => 'course2', 'role' => 'role2'),
         );
-        $this->having_mnet_host_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->moodle->shouldReceive('get_role_assignments_by_user')
             ->with(201)->andReturn($records);
 
@@ -451,8 +380,7 @@ class GetUserEnrolmentsTest extends OperationTest {
     }
 
     function test_no_enrolments() {
-        $this->having_mnet_host_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->moodle->shouldReceive('get_role_assignments_by_user')
             ->with(201)->andReturn(array());
 
@@ -462,7 +390,6 @@ class GetUserEnrolmentsTest extends OperationTest {
     }
 
     function test_unknown_user() {
-        $this->having_mnet_host_id(101);
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->get_user_enrolments('user1');
     }
@@ -471,11 +398,10 @@ class GetUserEnrolmentsTest extends OperationTest {
 class EnrolUsersTest extends OperationTest {
 
     function test() {
-        $this->having_mnet_host_id(101);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         for ($i = 1; $i <= 3; $i++) {
             $this->having_course_id('course' . $i, 200 + $i);
-            $this->having_user_id(101, 'user' . $i, 300 + $i);
+            $this->having_user_id('user' . $i, 300 + $i);
             $this->having_role_id('role' . $i, 400 + $i);
             $this->moodle->shouldReceive('role_assignment_exists')
                 ->with(200 + $i, 300 + $i, 400 + $i)->andReturn(false);
@@ -492,9 +418,8 @@ class EnrolUsersTest extends OperationTest {
     }
 
     function test_duplicate_enrolment() {
-        $this->having_mnet_host_id(101);
         $this->having_course_id('course1', 201);
-        $this->having_user_id(101, 'user1', 301);
+        $this->having_user_id('user1', 301);
         $this->having_role_id('role1', 401);
         $this->moodle->shouldReceive('role_assignment_exists')
                 ->with(201, 301, 401)->andReturn(true);
@@ -507,8 +432,7 @@ class EnrolUsersTest extends OperationTest {
     }
 
     function test_unknown_course() {
-        $this->having_mnet_host_id(101);
-        $this->having_user_id(101, 'user1', 301);
+        $this->having_user_id('user1', 301);
         $this->having_role_id('role1', 401);
         $this->moodle->shouldReceive('start_transaction')->once();
 
@@ -519,7 +443,6 @@ class EnrolUsersTest extends OperationTest {
     }
 
     function test_unknown_user() {
-        $this->having_mnet_host_id(101);
         $this->having_course_id('course1', 201);
         $this->having_role_id('role1', 401);
         $this->moodle->shouldReceive('start_transaction')->once();
@@ -531,9 +454,8 @@ class EnrolUsersTest extends OperationTest {
     }
 
     function test_unknown_role() {
-        $this->having_mnet_host_id(101);
         $this->having_course_id('course1', 201);
-        $this->having_user_id(101, 'user1', 301);
+        $this->having_user_id('user1', 301);
         $this->moodle->shouldReceive('start_transaction')->once();
 
         $this->setExpectedException('local_secretaria_exception', 'Unknown role');
@@ -546,11 +468,10 @@ class EnrolUsersTest extends OperationTest {
 class UnenrolUsersTest extends OperationTest {
 
     function test() {
-        $this->having_mnet_host_id(101);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         for ($i = 1; $i <= 3; $i++) {
             $this->having_course_id('course' . $i, 200 + $i);
-            $this->having_user_id(101, 'user' . $i, 300 + $i);
+            $this->having_user_id('user' . $i, 300 + $i);
             $this->having_role_id('role' . $i, 400 + $i);
             $this->moodle->shouldReceive('role_assignment_exists')
                 ->with(200 + $i, 300 + $i, 400 + $i)->andReturn(false);
@@ -567,8 +488,7 @@ class UnenrolUsersTest extends OperationTest {
     }
 
     function test_unknown_course() {
-        $this->having_mnet_host_id(101);
-        $this->having_user_id(101, 'user1', 301);
+        $this->having_user_id('user1', 301);
         $this->having_role_id('role1', 401);
         $this->moodle->shouldReceive('start_transaction')->once();
 
@@ -579,7 +499,6 @@ class UnenrolUsersTest extends OperationTest {
     }
 
     function test_unknown_user() {
-        $this->having_mnet_host_id(101);
         $this->having_course_id('course1', 201);
         $this->having_role_id('role1', 401);
         $this->moodle->shouldReceive('start_transaction')->once();
@@ -591,9 +510,8 @@ class UnenrolUsersTest extends OperationTest {
     }
 
     function test_unknown_role() {
-        $this->having_mnet_host_id(101);
         $this->having_course_id('course1', 201);
-        $this->having_user_id(101, 'user1', 301);
+        $this->having_user_id('user1', 301);
         $this->moodle->shouldReceive('start_transaction')->once();
 
         $this->setExpectedException('local_secretaria_exception', 'Unknown role');
@@ -706,9 +624,8 @@ class GetGroupMembersTest extends OperationTest {
         );
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
-        $this->having_mnet_host_id(301);
         $this->moodle->shouldReceive('get_group_members')
-            ->with(201, 301)->andReturn($records);
+            ->with(201)->andReturn($records);
 
         $result = $this->operations->get_group_members('course1', 'group1');
 
@@ -718,9 +635,8 @@ class GetGroupMembersTest extends OperationTest {
     function test_no_members() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
-        $this->having_mnet_host_id(301);
         $this->moodle->shouldReceive('get_group_members')
-            ->with(201, 301)->andReturn(false);
+            ->with(201)->andReturn(false);
 
         $result = $this->operations->get_group_members('course1', 'group1');
 
@@ -728,14 +644,12 @@ class GetGroupMembersTest extends OperationTest {
     }
 
     function test_unknown_course() {
-        $this->having_mnet_host_id(301);
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_group_members('course1', 'group1');
     }
 
     function test_unknown_group() {
         $this->having_course_id('course1', 101);
-        $this->having_mnet_host_id(301);
         $this->setExpectedException('local_secretaria_exception', 'Unknown group');
         $this->operations->get_group_members('course1', 'group1');
     }
@@ -746,9 +660,8 @@ class AddGroupMembersTest extends OperationTest {
     function test() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
-        $this->having_mnet_host_id(301);
-        $this->having_user_id(301, 'user1', 401);
-        $this->having_user_id(301, 'user2', 402);
+        $this->having_user_id('user1', 401);
+        $this->having_user_id('user2', 402);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('groups_add_member')
             ->with(201, 401)->once()->ordered();
@@ -760,14 +673,12 @@ class AddGroupMembersTest extends OperationTest {
     }
 
     function test_unknown_course() {
-        $this->having_mnet_host_id(301);
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->add_group_members('course1', 'group1', array());
     }
 
     function test_unknown_group() {
         $this->having_course_id('course1', 101);
-        $this->having_mnet_host_id(301);
         $this->setExpectedException('local_secretaria_exception', 'Unknown group');
         $this->operations->add_group_members('course1', 'group1', array());
     }
@@ -775,7 +686,6 @@ class AddGroupMembersTest extends OperationTest {
     function test_unknown_user() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
-        $this->having_mnet_host_id(301);
         $this->moodle->shouldReceive('start_transaction')->once();
 
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
@@ -788,9 +698,8 @@ class RemoveGroupMembersTest extends OperationTest {
     function test() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
-        $this->having_mnet_host_id(301);
-        $this->having_user_id(301, 'user1', 401);
-        $this->having_user_id(301, 'user2', 402);
+        $this->having_user_id('user1', 401);
+        $this->having_user_id('user2', 402);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('groups_remove_member')
             ->with(201, 401)->once()->ordered();
@@ -803,14 +712,12 @@ class RemoveGroupMembersTest extends OperationTest {
     }
 
     function test_unknown_course() {
-        $this->having_mnet_host_id(301);
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->remove_group_members('course1', 'group1', array());
     }
 
     function test_unknown_group() {
         $this->having_course_id('course1', 101);
-        $this->having_mnet_host_id(301);
         $this->setExpectedException('local_secretaria_exception', 'Unknown group');
         $this->operations->remove_group_members('course1', 'group1', array());
     }
@@ -818,7 +725,6 @@ class RemoveGroupMembersTest extends OperationTest {
     function test_unknown_user() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
-        $this->having_mnet_host_id(301);
         $this->moodle->shouldReceive('start_transaction')->once();
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->remove_group_members('course1', 'group1', array('user1'));
@@ -828,8 +734,7 @@ class RemoveGroupMembersTest extends OperationTest {
 class GetUserGroupsTest extends OperationTest {
 
     function test() {
-        $this->having_mnet_host_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->having_course_id('course1', 301);
         $records = array((object) array('id' => 401, 'name' => 'group1'),
                          (object) array('id' => 402, 'name' => 'group2'));
@@ -841,7 +746,6 @@ class GetUserGroupsTest extends OperationTest {
     }
 
     function test_unknown_user() {
-        $this->having_mnet_host_id(101);
         $this->having_group_id(101, 'group1', 201);
         $this->having_course_id('course1', 301);
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
@@ -850,16 +754,14 @@ class GetUserGroupsTest extends OperationTest {
     }
 
     function test_unknown_course() {
-        $this->having_mnet_host_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
 
         $this->operations->get_user_groups('user1', 'course1');
     }
 
     function test_no_groups() {
-        $this->having_mnet_host_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->having_course_id('course1', 301);
         $this->moodle->shouldReceive('groups_get_all_groups')->with(301, 201)->andReturn(false);
 
@@ -911,9 +813,8 @@ class GetCourseGradesTest extends OperationTest {
         );
 
         $this->having_course_id('course1', 101);
-        $this->having_mnet_host_id(201);
-        $this->having_user_id(201, 'user1', 301);
-        $this->having_user_id(201, 'user2', 302);
+        $this->having_user_id('user1', 301);
+        $this->having_user_id('user2', 302);
         $this->moodle->shouldReceive('grade_item_fetch_all')
             ->with(101)->andReturn($grade_items);
         $this->moodle->shouldReceive('grade_get_grades')
@@ -959,9 +860,8 @@ class GetCourseGradesTest extends OperationTest {
 
     function test_no_grade_items() {
         $this->having_course_id('course1', 101);
-        $this->having_mnet_host_id(201);
-        $this->having_user_id(201, 'user1', 301);
-        $this->having_user_id(201, 'user2', 302);
+        $this->having_user_id('user1', 301);
+        $this->having_user_id('user2', 302);
         $this->moodle->shouldReceive('grade_item_fetch_all')
             ->with(101)->andReturn(false);
 
@@ -972,14 +872,12 @@ class GetCourseGradesTest extends OperationTest {
     }
 
     function test_unknown_course() {
-        $this->having_mnet_host_id(201);
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_course_grades('course1', array('user1', 'user2'));
     }
 
     function test_unknown_user() {
         $this->having_course_id('course1', 101);
-        $this->having_mnet_host_id(201);
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->get_course_grades('course1', array('user1', 'user2'));
     }
@@ -991,8 +889,7 @@ class GetUserGradesTest extends OperationTest {
         $grade1 = (object) array('str_grade' => '5.1');
         $grade2 = (object) array('str_grade' => '6.2');
 
-        $this->having_mnet_host_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->having_course_id('course1', 301);
         $this->having_course_id('course2', 302);
         $this->moodle->shouldReceive('grade_get_course_grade')
@@ -1010,8 +907,7 @@ class GetUserGradesTest extends OperationTest {
     }
 
     function test_no_grade() {
-        $this->having_mnet_host_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->having_course_id('course1', 301);
         $this->moodle->shouldReceive('grade_get_course_grade')
             ->with(201, 301)->andReturn(false);
@@ -1024,14 +920,12 @@ class GetUserGradesTest extends OperationTest {
     }
 
     function test_unknown_course() {
-        $this->having_mnet_host_id(101);
-        $this->having_user_id(101, 'user1', 201);
+        $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_user_grades('user1', array('course1', 'course2'));
     }
 
     function test_unknown_user() {
-        $this->having_mnet_host_id(101);
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->get_user_grades('user1', array());
     }
@@ -1284,7 +1178,6 @@ class SendMailTest extends OperationTest {
             'content' => 'content text',
             'to' => array('user2'),
         );
-        $this->having_mnet_host_id(101);
     }
 
     function test() {
@@ -1292,7 +1185,7 @@ class SendMailTest extends OperationTest {
         $this->message['bcc'] = array('user5');
         $this->having_course_id('course1', 201);
         for ($i = 1; $i <= 5; $i++) {
-            $this->having_user_id(101, 'user' . $i, 300 + $i);
+            $this->having_user_id('user' . $i, 300 + $i);
         }
         $this->moodle->shouldReceive('send_mail')
             ->with(301, 201, 'subject text', 'content text',
@@ -1303,8 +1196,8 @@ class SendMailTest extends OperationTest {
     }
 
     function test_unknown_course() {
-        $this->having_user_id(101, 'user1', 301);
-        $this->having_user_id(101, 'user2', 302);
+        $this->having_user_id('user1', 301);
+        $this->having_user_id('user2', 302);
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
 
         $this->operations->send_mail($this->message);
@@ -1320,8 +1213,8 @@ class SendMailTest extends OperationTest {
     function test_duplicate_user() {
         $this->message['cc'] = array('user1');
         $this->having_course_id('course1', 201);
-        $this->having_user_id(101, 'user1', 301);
-        $this->having_user_id(101, 'user2', 302);
+        $this->having_user_id('user1', 301);
+        $this->having_user_id('user2', 302);
 
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
@@ -1331,7 +1224,7 @@ class SendMailTest extends OperationTest {
     function test_no_recipient() {
         $this->message['to'] = array();
         $this->having_course_id('course1', 201);
-        $this->having_user_id(101, 'user1', 301);
+        $this->having_user_id('user1', 301);
 
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 

@@ -11,12 +11,7 @@ require_once($CFG->dirroot . '/local/secretaria/operations.php');
 
 class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
-    private $mnethostid;
     private $transaction;
-
-    function __construct() {
-        $this->mnethostid = get_config('local_secretaria', 'mnethostid');
-    }
 
     function check_password($password) {
         return check_password_policy($password, $errormsg);
@@ -84,12 +79,11 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         rebuild_course_cache($course->id);
     }
 
-    function create_user($auth, $mnethostid, $username, $password,
-                         $firstname, $lastname, $email) {
+    function create_user($auth, $username, $password, $firstname, $lastname, $email) {
         global $CFG;
         $user = new stdClass;
         $user->auth = $auth;
-        $user->mnethostid = $mnethostid;
+        $user->mnethostid = $CFG->mnet_localhost_id;
         $user->username = $username;
         if ($password) {
             $user->password = $password;
@@ -143,8 +137,8 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return groups_get_group_by_name($courseid, $name);
     }
 
-    function get_group_members($groupid, $mnethostid) {
-        global $DB;
+    function get_group_members($groupid) {
+        global $CFG, $DB;
         $sql = 'SElECT u.username'
             . ' FROM {groups_members} gm'
             . ' JOIN {user} u ON u.id = gm.userid'
@@ -152,12 +146,12 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
             . ' AND u.mnethostid = :mnethostid';
         return $DB->get_records_sql($sql, array(
             'groupid' => $groupid,
-            'mnethostid' => $mnethostid,
+            'mnethostid' => $CFG->mnet_localhost_id,
         ));
     }
 
-    function get_role_assignments_by_course($courseid, $mnethostid) {
-         global $DB;
+    function get_role_assignments_by_course($courseid) {
+         global $CFG, $DB;
 
          $sql = 'SELECT ra.id, u.username AS user, r.shortname AS role'
              . ' FROM {context} ct, {enrol} e, {role} r, {role_assignments} ra,'
@@ -182,7 +176,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
              'courseid' => $courseid,
              'enrol' => 'manual',
              'itemid' => 0,
-             'mnethostid' => $mnethostid,
+             'mnethostid' => $CFG->mnet_localhost_id,
          ));
      }
 
@@ -257,10 +251,10 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-     function get_user_id($mnethostid, $username) {
-         global $DB;
+     function get_user_id($username) {
+         global $CFG, $DB;
          return $DB->get_field('user', 'id', array(
-             'mnethostid' => $mnethostid,
+             'mnethostid' => $CFG->mnet_localhost_id,
              'username' => $username,
              'deleted' => 0,
          ));
@@ -277,10 +271,10 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_sql($sql, array('userid' => $userid));
      }
 
-     function get_user_record($mnethostid, $username) {
-         global $DB;
+     function get_user_record($username) {
+         global $CFG, $DB;
          return $DB->get_record('user', array(
-             'mnethostid' => $mnethostid,
+             'mnethostid' => $CFG->mnet_localhost_id,
              'username' => $username,
              'deleted' => 0,
          ));
@@ -349,40 +343,31 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return make_timestamp($year, $month, $day, $hour, $minute, $second);
     }
 
-     function mnet_host_id() {
-         return (int) $this->mnethostid;
-     }
+    function role_assignment_exists($courseid, $userid, $roleid) {
+        global $DB;
 
-     function mnet_localhost_id() {
-         global $CFG;
-         return (int) $CFG->mnet_localhost_id;
-     }
+        $sql = 'SELECT ra.id'
+            . ' FROM {context} ct, {enrol} e, {role_assignments} ra, {user_enrolments} ue'
+            . ' WHERE ct.contextlevel = :contextlevel'
+            . ' AND ct.instanceid = :courseid'
+            . ' AND e.courseid = ct.instanceid'
+            . ' AND e.enrol = :enrol'
+            . ' AND ra.component = :component'
+            . ' AND ra.contextid = ct.id'
+            . ' AND ra.itemid = :itemid'
+            . ' AND ra.roleid = :roleid'
+            . ' AND ra.userid = :userid'
+            . ' AND ue.enrolid = e.id'
+            . ' AND ue.userid = ra.userid';
 
-     function role_assignment_exists($courseid, $userid, $roleid) {
-         global $DB;
-
-         $sql = 'SELECT ra.id'
-             . ' FROM {context} ct, {enrol} e, {role_assignments} ra, {user_enrolments} ue'
-             . ' WHERE ct.contextlevel = :contextlevel'
-             . ' AND ct.instanceid = :courseid'
-             . ' AND e.courseid = ct.instanceid'
-             . ' AND e.enrol = :enrol'
-             . ' AND ra.component = :component'
-             . ' AND ra.contextid = ct.id'
-             . ' AND ra.itemid = :itemid'
-             . ' AND ra.roleid = :roleid'
-             . ' AND ra.userid = :userid'
-             . ' AND ue.enrolid = e.id'
-             . ' AND ue.userid = ra.userid';
-
-         return $DB->record_exists_sql($sql, array(
-             'component' => '',
-             'contextlevel' => CONTEXT_COURSE,
-             'courseid' => $courseid,
-             'enrol' => 'manual',
-             'itemid' => 0,
-             'roleid' => $roleid,
-             'userid' => $userid,
+        return $DB->record_exists_sql($sql, array(
+            'component' => '',
+            'contextlevel' => CONTEXT_COURSE,
+            'courseid' => $courseid,
+            'enrol' => 'manual',
+            'itemid' => 0,
+            'roleid' => $roleid,
+            'userid' => $userid,
         ));
     }
 
