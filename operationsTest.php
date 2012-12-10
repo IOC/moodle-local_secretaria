@@ -49,7 +49,7 @@ abstract class OperationTest extends PHPUnit_Framework_TestCase {
 
     protected function having_user_record($username, $record) {
         $this->moodle->shouldReceive('get_user_record')
-            ->with($username)->andReturn($record);
+            ->with($username)->andReturn((object) $record);
     }
 }
 
@@ -140,11 +140,27 @@ class CreateUserTest extends OperationTest {
     }
 
     function test() {
-        $this->moodle->shouldReceive('start_transaction')->once()->ordered();
+        $this->moodle->shouldReceive('auth_plugin')->with()->andReturn('manual');
+        $this->moodle->shouldReceive('prevent_local_passwords')
+            ->with('manual')->andReturn(false);
         $this->moodle->shouldReceive('check_password')
             ->with('abc123')->andReturn(true);
+        $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('create_user')
             ->with('manual', 'user1', 'abc123', 'First', 'Last', 'user1@example.org')
+            ->once()->ordered();
+        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
+
+        $this->operations->create_user($this->properties);
+    }
+
+    function test_prevent_local_passwords() {
+        $this->moodle->shouldReceive('auth_plugin')->andReturn('msso');
+        $this->moodle->shouldReceive('prevent_local_passwords')
+            ->with('msso')->andReturn(true);
+        $this->moodle->shouldReceive('start_transaction')->once()->ordered();
+        $this->moodle->shouldReceive('create_user')
+            ->with('msso', 'user1', false, 'First', 'Last', 'user1@example.org')
             ->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
@@ -180,6 +196,9 @@ class CreateUserTest extends OperationTest {
     }
 
     function test_invalid_password() {
+        $this->moodle->shouldReceive('auth_plugin')->andReturn('manual');
+        $this->moodle->shouldReceive('prevent_local_passwords')
+            ->with('manual')->andReturn(false);
         $this->moodle->shouldReceive('check_password')
             ->with('abc123')->andReturn(false);
         $this->setExpectedException('local_secretaria_exception', 'Invalid password');
@@ -198,8 +217,10 @@ class UpdateUserTest extends OperationTest {
             'lastname' => 'Last2',
             'email' => 'user2@example.org',
         );
-        $this->having_user_id('user1', 201);
+        $this->having_user_record('user1', array('id' => 201, 'auth' => 'manual'));
         $this->having_user_id('user2', false);
+        $this->moodle->shouldReceive('prevent_local_passwords')
+            ->with('manual')->andReturn(false);
         $this->moodle->shouldReceive('check_password')
             ->with('abc123')->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
@@ -225,6 +246,7 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_blank_username() {
+        $this->having_user_record('user1', array('id' => 201));
         $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
@@ -232,7 +254,7 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_duplicate_username() {
-        $this->having_user_id('user1', 201);
+        $this->having_user_record('user1', array('id' => 201));
         $this->having_user_id('user2', 202);
         $this->setExpectedException('local_secretaria_exception', 'Duplicate username');
 
@@ -240,7 +262,7 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_same_username() {
-        $this->having_user_id('user1', 201);
+        $this->having_user_record('user1', array('id' => 201));
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
@@ -248,7 +270,9 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_password_only() {
-        $this->having_user_id('user1', 201);
+        $this->having_user_record('user1', array('id' => 201, 'auth' => 'manual'));
+        $this->moodle->shouldReceive('prevent_local_passwords')
+            ->with('manual')->andReturn(false);
         $this->moodle->shouldReceive('check_password')
             ->with('abc123')->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
@@ -260,7 +284,9 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_invalid_password() {
-        $this->having_user_id('user1', 201);
+        $this->having_user_record('user1', array('id' => 201, 'auth' => 'manual'));
+        $this->moodle->shouldReceive('prevent_local_passwords')
+            ->with('manual')->andReturn(false);
         $this->moodle->shouldReceive('check_password')
             ->with('abc123')->andReturn(false);
         $this->setExpectedException('local_secretaria_exception', 'Invalid password');
@@ -268,15 +294,25 @@ class UpdateUserTest extends OperationTest {
         $this->operations->update_user('user1', array('password' => 'abc123'));
     }
 
+    function test_prevent_local_passwords() {
+        $this->having_user_record('user1', array('id' => 201, 'auth' => 'msso'));
+        $this->moodle->shouldReceive('prevent_local_passwords')
+            ->with('msso')->andReturn(true);
+        $this->moodle->shouldReceive('start_transaction')->once()->ordered();
+        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
+
+        $this->operations->update_user('user1', array('password' => 'abc123'));
+    }
+
     function test_blank_firstname() {
-        $this->having_user_id('user1', 201);
+        $this->having_user_record('user1', array('id' => 201));
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->update_user('user1', array('firstname' => ''));
     }
 
     function test_blank_lastname() {
-        $this->having_user_id('user1', 201);
+        $this->having_user_record('user1', array('id' => 201));
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->update_user('user1', array('lastname' => ''));
@@ -284,7 +320,7 @@ class UpdateUserTest extends OperationTest {
 
     function test_blank_email() {
         $record = (object) array('id' => 201, 'email' => '');
-        $this->having_user_id('user1', 201);
+        $this->having_user_record('user1', array('id' => 201));
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('update_record')
             ->with('user', Mockery::mustBe($record))->once()->ordered();

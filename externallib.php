@@ -102,7 +102,7 @@ class moodle_local_secretaria_external extends external_api {
         return new external_function_parameters(array(
             'properties' => new external_single_structure(array(
                 'username' => self::value_required(PARAM_USERNAME, 'Username'),
-                'password' => self::value_required(PARAM_RAW, 'Plain text password'),
+                'password' => self::value_optional(PARAM_RAW, 'Plain text password'),
                 'firstname' => self::value_required(PARAM_NOTAGS, 'First name'),
                 'lastname' => self::value_required(PARAM_NOTAGS, 'Last name'),
                 'email' => self::value_required(PARAM_EMAIL, 'Email address'),

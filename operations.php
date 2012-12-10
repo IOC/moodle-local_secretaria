@@ -47,9 +47,7 @@ class local_secretaria_operations {
     }
 
     function create_user($properties) {
-        if (empty($properties['username']) or
-            empty($properties['firstname']) or
-            empty($properties['lastname'])) {
+        if (!$properties['username'] or !$properties['firstname'] or !$properties['lastname']) {
             throw new local_secretaria_exception('Invalid parameters');
         }
 
@@ -57,13 +55,18 @@ class local_secretaria_operations {
             throw new local_secretaria_exception('Duplicate username');
         }
 
-        if (!$this->moodle->check_password($properties['password'])) {
+        $auth = $this->moodle->auth_plugin();
+
+        if ($this->moodle->prevent_local_passwords($auth)) {
+            $properties['password'] = false;
+        } elseif (!isset($properties['password']) or
+                  !$this->moodle->check_password($properties['password'])) {
             throw new local_secretaria_exception('Invalid password');
         }
 
         $this->moodle->start_transaction();
         $this->moodle->create_user(
-            'manual',
+            $auth,
             $properties['username'],
             $properties['password'],
             $properties['firstname'],
@@ -74,11 +77,12 @@ class local_secretaria_operations {
     }
 
     function update_user($username, $properties) {
-        $record = new stdClass;
-
-        if (!$record->id = $this->moodle->get_user_id($username)) {
+        if (!$user = $this->moodle->get_user_record($username)) {
             throw new local_secretaria_exception('Unknown user');
         }
+
+        $record = new stdClass;
+        $record->id = $user->id;
 
         if (isset($properties['username'])) {
             if (empty($properties['username'])) {
@@ -92,7 +96,9 @@ class local_secretaria_operations {
             }
         }
         if (isset($properties['password'])) {
-            if (!$this->moodle->check_password($properties['password'])) {
+            if ($this->moodle->prevent_local_passwords($user->auth)) {
+                unset($properties['password']);
+            } elseif (!$this->moodle->check_password($properties['password'])) {
                 throw new local_secretaria_exception('Invalid password');
             }
         }
@@ -520,6 +526,7 @@ class local_secretaria_operations {
 }
 
 interface local_secretaria_moodle {
+    function auth_plugin();
     function check_password($password);
     function commit_transaction();
     function create_survey($courseid, $section, $name, $summary, $idnumber,
@@ -550,6 +557,7 @@ interface local_secretaria_moodle {
     function groups_remove_member($groupid, $userid);
     function insert_role_assignment($courseid, $userid, $roleid);
     function make_timestamp($year, $month, $day, $hour=0, $minute=0, $second=0);
+    function prevent_local_passwords($auth);
     function role_assignment_exists($courseid, $userid, $roleid);
     function rollback_transaction(Exception $e);
     function section_exists($courseid, $section);

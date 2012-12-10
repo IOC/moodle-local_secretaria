@@ -13,8 +13,12 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
     private $transaction;
 
+    function auth_plugin() {
+        return get_config('local_secretaria', 'auth_plugin');
+    }
+
     function check_password($password) {
-        return check_password_policy($password, $errormsg);
+        return $password and check_password_policy($password, $errormsg);
     }
 
     function commit_transaction() {
@@ -80,20 +84,25 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
     }
 
     function create_user($auth, $username, $password, $firstname, $lastname, $email) {
-        global $CFG;
-        $user = new stdClass;
-        $user->auth = $auth;
-        $user->mnethostid = $CFG->mnet_localhost_id;
-        $user->username = $username;
-        if ($password) {
-            $user->password = $password;
-        }
-        $user->firstname = $firstname;
-        $user->lastname = $lastname;
-        $user->email = $email;
-        $user->confirmed = true;
-        $user->lang = $CFG->lang;
-        user_create_user($user);
+        global $CFG, $DB;
+
+        $record = new stdClass;
+        $record->auth = $auth;
+        $record->mnethostid = $CFG->mnet_localhost_id;
+        $record->username = $username;
+        $record->password = $password ? hash_internal_user_password($password) : 'not cached';
+        $record->firstname = $firstname;
+        $record->lastname = $lastname;
+        $record->email = $email;
+        $record->confirmed = true;
+        $record->lang = $CFG->lang;
+        $record->timecreated = time();
+        $record->timemodified = $record->timecreated;
+
+        $id = $DB->insert_record('user', $record);
+
+        get_context_instance(CONTEXT_USER, $id);
+        events_trigger('user_created', $DB->get_record('user', array('id' => $id)));
     }
 
     function delete_user($record) {
@@ -341,6 +350,10 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
     function make_timestamp($year, $month, $day, $hour=0, $minute=0, $second=0) {
         return make_timestamp($year, $month, $day, $hour, $minute, $second);
+    }
+
+    function prevent_local_passwords($auth) {
+        return get_auth_plugin($auth)->prevent_local_passwords();
     }
 
     function role_assignment_exists($courseid, $userid, $roleid) {
