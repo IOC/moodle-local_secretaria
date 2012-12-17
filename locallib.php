@@ -269,15 +269,15 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
          ));
      }
 
-     function get_user_lastaccess($userid) {
+     function get_user_lastaccess($userids) {
          global $DB;
 
-         $sql = 'SELECT l.id, c.shortname AS course, l.timeaccess AS time'
+         $sql = 'SELECT l.id, l.userid, c.shortname AS course, l.timeaccess AS time'
              . ' FROM {user_lastaccess} l'
              . ' JOIN {course} c ON c.id = l.courseid'
-             . ' WHERE l.userid = :userid';
+             . ' WHERE l.userid IN (' . implode(',', $userids) . ')';
 
-        return $DB->get_records_sql($sql, array('userid' => $userid));
+         return $userids ? $DB->get_records_sql($sql) : false;
      }
 
      function get_user_record($username) {

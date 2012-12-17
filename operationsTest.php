@@ -107,22 +107,29 @@ class GetUserTest extends OperationTest {
 class GetUserLastAccessTest extends OperationTest {
 
     function test() {
-        $this->having_user_id('user', 201);
-        $records = array((object) array('course' => 'CP1', 'time' => '1234567891'),
-                         (object) array('course' => 'CP2', 'time' => '1234567892'));
-        $this->moodle->shouldReceive('get_user_lastaccess')->with(201)->andReturn($records);
+        $this->having_user_id('user1', 201);
+        $this->having_user_id('user2', 202);
+        $this->having_user_id('user3', 203);
+        $records = array(
+            (object) array('id' => 301, 'userid' => 201, 'course' => 'CP1', 'time' => 1234567891),
+            (object) array('id' => 302, 'userid' => 201, 'course' => 'CP2', 'time' => 1234567892),
+            (object) array('id' => 303, 'userid' => 202, 'course' => 'CP1', 'time' => 1234567893),
+        );
+        $this->moodle->shouldReceive('get_user_lastaccess')
+            ->with(array(201, 202, 203))->andReturn($records);
 
-        $result = $this->operations->get_user_lastaccess('user');
+        $result = $this->operations->get_user_lastaccess(array('user1', 'user2', 'user3'));
 
         $this->assertThat($result, $this->equalTo(array(
-            array('course' => 'CP1', 'time' => 1234567891),
-            array('course' => 'CP2', 'time' => 1234567892),
+            array('user' => 'user1', 'course' => 'CP1', 'time' => 1234567891),
+            array('user' => 'user1', 'course' => 'CP2', 'time' => 1234567892),
+            array('user' => 'user2', 'course' => 'CP1', 'time' => 1234567893),
         )));
     }
 
     function test_unknown_user() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
-        $this->operations->get_user_lastaccess('user');
+        $this->operations->get_user_lastaccess(array('user1'));
     }
 }
 

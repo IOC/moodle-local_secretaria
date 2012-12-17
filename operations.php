@@ -29,16 +29,21 @@ class local_secretaria_operations {
         );
     }
 
-    function get_user_lastaccess($username) {
-        if (!$userid = $this->moodle->get_user_id($username)) {
-            throw new local_secretaria_exception('Unknown user');
+    function get_user_lastaccess($users) {
+        $usernames = array();
+        foreach ($users as $username) {
+            if (!$userid = $this->moodle->get_user_id($username)) {
+                throw new local_secretaria_exception('Unknown user');
+            }
+            $usernames[$userid] = $username;
         }
 
         $result = array();
 
-        if ($records = $this->moodle->get_user_lastaccess($userid)) {
+        if ($records = $this->moodle->get_user_lastaccess(array_keys($usernames))) {
             foreach ($records as $record) {
-                $result[] = array('course' => $record->course,
+                $result[] = array('user' => $usernames[$record->userid],
+                                  'course' => $record->course,
                                   'time' => (int) $record->time);
             }
         }
@@ -544,7 +549,7 @@ interface local_secretaria_moodle {
     function get_survey_id($courseid, $idnumber);
     function get_survey_templates($courseid);
     function get_user_id($username);
-    function get_user_lastaccess($userid);
+    function get_user_lastaccess($userids);
     function get_user_record($username);
     function grade_get_course_grade($userid, $courseid);
     function grade_get_grades($courseid, $itemtype, $itemmodule,
