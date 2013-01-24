@@ -174,11 +174,11 @@ $functions = array(
 
     /* Surveys */
 
-    'secretaria_get_survey_templates' => array(
+    'secretaria_get_surveys' => array(
         'classname'   => 'moodle_local_secretaria_external',
-        'methodname'  => 'get_survey_templates',
+        'methodname'  => 'get_surveys',
         'classpath'   => 'local/secretaria/externallib.php',
-        'description' => 'Get survey templates',
+        'description' => 'Get surveys',
         'capabilities'=> 'local/secretaria:manage',
         'type'        => 'read',
     ),

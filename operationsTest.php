@@ -976,30 +976,35 @@ class GetUserGradesTest extends OperationTest {
 
 /* Surveys */
 
-class GetSurveyTemplatesTest extends OperationTest {
+class GetSurveysTest extends OperationTest {
 
     function test() {
         $records = array(
-            (object) array('id' => 201, 'name' => 'Survey 1', 'idnumber' => 'S1'),
-            (object) array('id' => 202, 'name' => 'Survey 2', 'idnumber' => 'S2'),
-            (object) array('id' => 203, 'name' => 'Survey 3', 'idnumber' => 'S3'),
-            (object) array('id' => 204, 'name' => 'Survey 4', 'idnumber' => ''),
+            (object) array('id' => 201, 'name' => 'Survey 1',
+                           'idnumber' => 'S1', 'realm' => 'private'),
+            (object) array('id' => 202, 'name' => 'Survey 2',
+                           'idnumber' => 'S2', 'realm' => 'public'),
+            (object) array('id' => 203, 'name' => 'Survey 3',
+                           'idnumber' => 'S3', 'realm' => 'template'),
+            (object) array('id' => 204, 'name' => 'Survey 4',
+                           'idnumber' => '', 'realm' => 'template'),
         );
         $this->having_course_id('course1', 101);
-        $this->moodle->shouldReceive('get_survey_templates')->with(101)->andReturn($records);
+        $this->moodle->shouldReceive('get_surveys')->with(101)->andReturn($records);
 
-        $result = $this->operations->get_survey_templates('course1');
+        $result = $this->operations->get_surveys('course1');
 
         $this->assertThat($result, $this->equalTo(array(
-            array('idnumber' => 'S1', 'name' => 'Survey 1'),
-            array('idnumber' => 'S2', 'name' => 'Survey 2'),
-            array('idnumber' => 'S3', 'name' => 'Survey 3'),
+            array('idnumber' => 'S1', 'name' => 'Survey 1', 'type' => 'private'),
+            array('idnumber' => 'S2', 'name' => 'Survey 2', 'type' => 'public'),
+            array('idnumber' => 'S3', 'name' => 'Survey 3', 'type' => 'template'),
+            array('idnumber' => '', 'name' => 'Survey 4', 'type' => 'template'),
         )));
     }
 
     function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
-        $this->operations->get_survey_templates('course1');
+        $this->operations->get_surveys('course1');
     }
 }
 

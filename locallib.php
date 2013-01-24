@@ -239,23 +239,23 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-    function get_survey_templates($courseid) {
+    function get_surveys($courseid) {
         global $DB;
 
-        $sql = 'SELECT q.id, q.name, cm.idnumber'
+        $sql = 'SELECT q.id, q.name, cm.idnumber, qs.realm'
             . ' FROM {modules} m'
             . ' JOIN {course_modules} cm ON cm.module = m.id'
             . ' JOIN {questionnaire} q ON q.id = cm.instance'
             . ' JOIN {questionnaire_survey} qs ON qs.id = q.sid'
             . ' WHERE m.name = :module'
             . ' AND cm.course = :courseid'
-            . ' AND qs.realm = :realm'
+            . ' AND qs.owner = :owner'
             . ' AND qs.status != :status';
 
         return $DB->get_records_sql($sql, array(
             'courseid' => $courseid,
             'module' => 'questionnaire',
-            'realm' => 'template',
+            'owner' => $courseid,
             'status' => 4,
         ));
     }

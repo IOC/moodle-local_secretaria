@@ -435,21 +435,22 @@ class moodle_local_secretaria_external extends external_api {
 
     /* Surveys */
 
-    public static function get_survey_templates($course) {
-        return self::execute('get_survey_templates', array('course' => $course));
+    public static function get_surveys($course) {
+        return self::execute('get_surveys', array('course' => $course));
     }
 
-    public static function get_survey_templates_parameters() {
+    public static function get_surveys_parameters() {
         return new external_function_parameters(array(
             'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
         ));
     }
 
-    public static function get_survey_templates_returns() {
+    public static function get_surveys_returns() {
         return self::multiple_structure(
             new external_single_structure(array(
                 'name' => self::value_required(PARAM_TEXT, 'Survey name'),
                 'idnumber' => self::value_required(PARAM_RAW, 'Survey idnumber'),
+                'type' => self::value_required(PARAM_RAW, 'Survey type'),
             ))
         );
     }

@@ -402,18 +402,20 @@ class local_secretaria_operations {
 
     /* Surveys */
 
-    function get_survey_templates($course) {
+    function get_surveys($course) {
+        $result = array();
+
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
         }
 
-        $result = array();
-
-        if ($records = $this->moodle->get_survey_templates($courseid)) {
+        if ($records = $this->moodle->get_surveys($courseid)) {
             foreach ($records as $record) {
-                if ($record->idnumber) {
-                    $result[] = array('name' => $record->name, 'idnumber' => $record->idnumber);
-                }
+                $result[] = array(
+                    'idnumber' => $record->idnumber,
+                    'name' => $record->name,
+                    'type' => $record->realm,
+                );
             }
         }
 
@@ -547,7 +549,7 @@ interface local_secretaria_moodle {
     function get_role_assignments_by_user($userid);
     function get_role_id($role);
     function get_survey_id($courseid, $idnumber);
-    function get_survey_templates($courseid);
+    function get_surveys($courseid);
     function get_user_id($username);
     function get_user_lastaccess($userids);
     function get_user_record($username);
