@@ -96,6 +96,9 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $record->email = $email;
         $record->confirmed = true;
         $record->lang = $CFG->lang;
+        $record->maildisplay = 0;
+        $record->autosubscribe = 0;
+        $record->trackforums = 1;
         $record->timecreated = time();
         $record->timemodified = $record->timecreated;
 
