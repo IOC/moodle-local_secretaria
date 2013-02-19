@@ -24,7 +24,7 @@ class local_secretaria_operations {
             'firstname' => $record->firstname,
             'lastname' => $record->lastname,
             'email' => $record->email,
-            'picture' => $record->picture ? $pixurl : '',
+            'picture' => $record->picture ? $pixurl : null,
             'lastaccess' => (int) $record->lastaccess,
         );
     }
@@ -393,7 +393,7 @@ class local_secretaria_operations {
             $grade = $this->moodle->grade_get_course_grade($userid, $courseid);
             $result[] = array(
                 'course' => $course,
-                'grade' => $grade ? $grade->str_grade : '',
+                'grade' => $grade ? $grade->str_grade : null,
             );
         }
 
