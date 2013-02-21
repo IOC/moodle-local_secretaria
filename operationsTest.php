@@ -195,6 +195,13 @@ class CreateUserTest extends OperationTest {
         $this->operations->create_user($this->properties);
     }
 
+    function test_blank_email() {
+        $this->properties['email'] = '';
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+
+        $this->operations->create_user($this->properties);
+    }
+
     function test_duplicate_username() {
         $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Duplicate username');

@@ -52,7 +52,10 @@ class local_secretaria_operations {
     }
 
     function create_user($properties) {
-        if (!$properties['username'] or !$properties['firstname'] or !$properties['lastname']) {
+        if (!$properties['username'] or
+            !$properties['firstname'] or
+            !$properties['lastname'] or
+            !$properties['email']) {
             throw new local_secretaria_exception('Invalid parameters');
         }
 
