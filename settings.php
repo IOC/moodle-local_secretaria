@@ -3,7 +3,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 if ($hassiteconfig) {
-    $settings = new admin_settingpage('settings', get_string('pluginname', 'local_secretaria'));
+    $settings = new admin_settingpage('local_secretaria', get_string('pluginname', 'local_secretaria'));
 
     $auth_plugins = get_enabled_auth_plugins(true);
     $options = array_combine($auth_plugins, $auth_plugins);
