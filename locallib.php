@@ -120,7 +120,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         role_unassign($roleid, $userid, $context->id);
 
         $conditions = array(
-            'contextid' => $cotnext->id,
+            'contextid' => $context->id,
             'userid' => $userid,
         );
 
