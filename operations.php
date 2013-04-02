@@ -185,7 +185,7 @@ class local_secretaria_operations {
                 throw new local_secretaria_exception('Unknown course');
             }
             if (!$userid = $this->moodle->get_user_id($enrolment['user'])) {
-                throw new local_secretaria_exception('Unknown user');
+                continue;
             }
             if (!$roleid = $this->moodle->get_role_id($enrolment['role'])) {
                 throw new local_secretaria_exception('Unknown role');
@@ -206,7 +206,7 @@ class local_secretaria_operations {
                 throw new local_secretaria_exception('Unknown course');
             }
             if (!$userid = $this->moodle->get_user_id($enrolment['user'])) {
-                throw new local_secretaria_exception('Unknown user');
+                continue;
             }
             if (!$roleid = $this->moodle->get_role_id($enrolment['role'])) {
                 throw new local_secretaria_exception('Unknown role');
@@ -291,7 +291,7 @@ class local_secretaria_operations {
 
         foreach ($users as $user) {
             if (!$userid = $this->moodle->get_user_id($user)) {
-                throw new local_secretaria_exception('Unknown user');
+                continue;
             }
             $this->moodle->groups_add_member($groupid, $userid);
         }
@@ -311,7 +311,7 @@ class local_secretaria_operations {
 
         foreach ($users as $user) {
             if (!$userid = $this->moodle->get_user_id($user)) {
-                throw new local_secretaria_exception('Unknown user');
+                continue;
             }
             $this->moodle->groups_remove_member($groupid, $userid);
         }

@@ -496,8 +496,8 @@ class EnrolUsersTest extends OperationTest {
         $this->having_course_id('course1', 201);
         $this->having_role_id('role1', 401);
         $this->moodle->shouldReceive('start_transaction')->once();
+        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
-        $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->enrol_users(array(
             array('course' => 'course1', 'user' => 'user1', 'role' => 'role1'),
         ));
@@ -552,8 +552,8 @@ class UnenrolUsersTest extends OperationTest {
         $this->having_course_id('course1', 201);
         $this->having_role_id('role1', 401);
         $this->moodle->shouldReceive('start_transaction')->once();
+        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
-        $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->unenrol_users(array(
             array('course' => 'course1', 'user' => 'user1', 'role' => 'role1'),
         ));
@@ -563,8 +563,8 @@ class UnenrolUsersTest extends OperationTest {
         $this->having_course_id('course1', 201);
         $this->having_user_id('user1', 301);
         $this->moodle->shouldReceive('start_transaction')->once();
-
         $this->setExpectedException('local_secretaria_exception', 'Unknown role');
+
         $this->operations->unenrol_users(array(
             array('course' => 'course1', 'user' => 'user1', 'role' => 'role1'),
         ));
@@ -737,8 +737,8 @@ class AddGroupMembersTest extends OperationTest {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
         $this->moodle->shouldReceive('start_transaction')->once();
+        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
-        $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->add_group_members('course1', 'group1', array('user1'));
     }
 }
@@ -776,7 +776,8 @@ class RemoveGroupMembersTest extends OperationTest {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
         $this->moodle->shouldReceive('start_transaction')->once();
-        $this->setExpectedException('local_secretaria_exception', 'Unknown user');
+        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
+
         $this->operations->remove_group_members('course1', 'group1', array('user1'));
     }
 }
