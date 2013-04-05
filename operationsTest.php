@@ -827,99 +827,77 @@ class GetUserGroupsTest extends OperationTest {
 class GetCourseGradesTest extends OperationTest {
 
     function test() {
-        $grade_items = array(
-            (object) array(
-                'itemtype' => 'course',
-                'itemmodule' => null,
-                'iteminstance' => 101,
-                'itemname' => null,
-                'idnumber' => 'id101',
+        $items = array(
+            array(
+                'id' => 401,
+                'idnumber' => 'gi1',
+                'type' => 'course',
+                'module' => null,
+                'name' => null,
+                'sortorder' => 3,
             ),
-            (object) array(
-                'itemtype' => 'category',
-                'itemmodule' => null,
-                'iteminstance' => 401,
-                'itemname' => 'Category 1',
-                'idnumber' => 'id301',
+            array(
+                'id' => 402,
+                'idnumber' => 'gi2',
+                'type' => 'category',
+                'module' => null,
+                'name' => 'Category 1',
+                'sortorder' => 1,
             ),
-            (object) array(
-                'itemtype' => 'module',
-                'itemmodule' => 'assignment',
-                'iteminstance' => 501,
-                'itemname' => 'Assignment 1',
-                'idnumber' => 'id401',
+            array(
+                'id' => 403,
+                'idnumber' => 'gi3',
+                'type' => 'module',
+                'module' => 'assignment',
+                'name' => 'Assignment 1',
+                'sortorder' => 2,
             ),
         );
-        $grades_course = array(
-            301 => (object) array('str_grade' => '5.1'),
-            302 => (object) array('str_grade' => '5.2'),
-        );
-        $grades_category = array(
-            301 => (object) array('str_grade' => '6.1'),
-            302 => (object) array('str_grade' => '6.2'),
-        );
-        $grades_module = array(
-            301 => (object) array('str_grade' => '7.1'),
-            302 => (object) array('str_grade' => '7.2'),
-        );
-
         $this->having_course_id('course1', 101);
         $this->having_user_id('user1', 301);
         $this->having_user_id('user2', 302);
-        $this->moodle->shouldReceive('grade_item_fetch_all')
-            ->with(101)->andReturn($grade_items);
-        $this->moodle->shouldReceive('grade_get_grades')
-            ->with(101, 'course', null, 101, array(301, 302))
-            ->andReturn($grades_course);
-        $this->moodle->shouldReceive('grade_get_grades')
-            ->with(101, 'category', null, 401, array(301, 302))
-            ->andReturn($grades_category);
-        $this->moodle->shouldReceive('grade_get_grades')
-            ->with(101, 'module', 'assignment', 501, array(301, 302))
-            ->andReturn($grades_module);
+        $this->moodle->shouldReceive('get_grade_items')->with(101)->andReturn($items);
+        $this->moodle->shouldReceive('get_grades')->with(401, array(301, 302))
+            ->andReturn(array(301 => '5.1',  302 => '5.2'));
+        $this->moodle->shouldReceive('get_grades')->with(402, array(301, 302))
+            ->andReturn(array(301 => '6.1', 302 => '6.2'));
+        $this->moodle->shouldReceive('get_grades')->with(403, array(301, 302))
+            ->andReturn(array(301 => '7.1', 302 => '7.2'));
 
-        $result = $this->operations->get_course_grades(
-            'course1', array('user1', 'user2'));
+        $result = $this->operations->get_course_grades('course1', array('user1', 'user2'));
 
         $this->assertThat($result, $this->equalTo(array(
-            array('type' => 'course',
-                  'module' => null,
-                  'idnumber' => 'id101',
-                  'name' => null,
-                  'grades' => array(
-                      array('user' => 'user1', 'grade' => '5.1'),
-                      array('user' => 'user2', 'grade' => '5.2'),
-                  )),
-            array('type' => 'category',
-                  'module' => null,
-                  'idnumber' => 'id301',
-                  'name' => 'Category 1',
-                  'grades' => array(
-                      array('user' => 'user1', 'grade' => '6.1'),
-                      array('user' => 'user2', 'grade' => '6.2'),
-                  )),
-            array('type' => 'module',
-                  'module' => 'assignment',
-                  'idnumber' => 'id401',
-                  'name' => 'Assignment 1',
-                  'grades' => array(
-                      array('user' => 'user1', 'grade' => '7.1'),
-                      array('user' => 'user2', 'grade' => '7.2'),
-                  )),
+            array(
+                'type' => 'category',
+                'module' => null,
+                'idnumber' => 'gi2',
+                'name' => 'Category 1',
+                'grades' => array(
+                    array('user' => 'user1', 'grade' => '6.1'),
+                    array('user' => 'user2', 'grade' => '6.2'),
+                ),
+            ),
+            array(
+                'type' => 'module',
+                'module' => 'assignment',
+                'idnumber' => 'gi3',
+                'name' => 'Assignment 1',
+                'grades' => array(
+                    array('user' => 'user1', 'grade' => '7.1'),
+                    array('user' => 'user2', 'grade' => '7.2'),
+                ),
+            ),
+            array(
+                'type' => 'course',
+                'module' => null,
+                'idnumber' => 'gi1',
+                'name' => null,
+                'grades' => array(
+                    array('user' => 'user1', 'grade' => '5.1'),
+                    array('user' => 'user2', 'grade' => '5.2'),
+                ),
+            ),
         )));
-    }
-
-    function test_no_grade_items() {
-        $this->having_course_id('course1', 101);
-        $this->having_user_id('user1', 301);
-        $this->having_user_id('user2', 302);
-        $this->moodle->shouldReceive('grade_item_fetch_all')
-            ->with(101)->andReturn(false);
-
-        $result = $this->operations->get_course_grades(
-            'course1', array('user1', 'user2'));
-
-        $this->assertThat($result, $this->equalTo(array()));
     }
 
     function test_unknown_course() {
@@ -937,16 +915,13 @@ class GetCourseGradesTest extends OperationTest {
 class GetUserGradesTest extends OperationTest {
 
     function test() {
-        $grade1 = (object) array('str_grade' => '5.1');
-        $grade2 = (object) array('str_grade' => '6.2');
-
         $this->having_user_id('user1', 201);
         $this->having_course_id('course1', 301);
         $this->having_course_id('course2', 302);
-        $this->moodle->shouldReceive('grade_get_course_grade')
-            ->with(201, 301)->andReturn($grade1);
-        $this->moodle->shouldReceive('grade_get_course_grade')
-            ->with(201, 302)->andReturn($grade2);
+        $this->moodle->shouldReceive('get_course_grade')
+            ->with(201, 301)->andReturn('5.1');
+        $this->moodle->shouldReceive('get_course_grade')
+            ->with(201, 302)->andReturn('6.2');
 
         $result = $this->operations->get_user_grades(
             'user1', array('course1', 'course2'));
@@ -954,19 +929,6 @@ class GetUserGradesTest extends OperationTest {
         $this->assertThat($result, $this->equalTo(array(
             array('course' => 'course1', 'grade' => '5.1'),
             array('course' => 'course2', 'grade' => '6.2'),
-        )));
-    }
-
-    function test_no_grade() {
-        $this->having_user_id('user1', 201);
-        $this->having_course_id('course1', 301);
-        $this->moodle->shouldReceive('grade_get_course_grade')
-            ->with(201, 301)->andReturn(false);
-
-        $result = $this->operations->get_user_grades('user1', array('course1'));
-
-        $this->assertThat($result, $this->equalTo(array(
-            array('course' => 'course1', 'grade' => null),
         )));
     }
 

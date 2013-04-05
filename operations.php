@@ -352,31 +352,27 @@ class local_secretaria_operations {
             }
             $usernames[$userid] = $user;
         }
+        $userids = array_keys($usernames);
 
         $result = array();
 
-        if ($grade_items = $this->moodle->grade_item_fetch_all($courseid)) {
-            foreach ($grade_items as $grade_item) {
-                $item = array('type' => $grade_item->itemtype,
-                              'module' => $grade_item->itemmodule,
-                              'idnumber' => $grade_item->idnumber,
-                              'name' => $grade_item->itemname,
-                              'grades' => array());
+        $items = $this->moodle->get_grade_items($courseid);
+        usort($items, function ($a, $b) {
+            return $a['sortorder'] - $b['sortorder'];
+        });
 
-                $grades = $this->moodle->grade_get_grades(
-                    $courseid, $grade_item->itemtype, $grade_item->itemmodule,
-                    $grade_item->iteminstance, array_keys($usernames));
-
-                foreach ($grades as $userid => $grade) {
-                    $username = $usernames[$userid];
-                    $item['grades'][] = array(
-                        'user' => $username,
-                        'grade' => $grade->str_grade,
-                    );
-                }
-
-                $result[] = $item;
+        foreach ($items as $item) {
+            $grades = array();
+            foreach ($this->moodle->get_grades($item['id'], $userids) as $userid => $grade) {
+                $grades[] = array('user' => $usernames[$userid], 'grade' => $grade);
             }
+            $result[] = array(
+                'idnumber' => $item['idnumber'],
+                'type' => $item['type'],
+                'module' => $item['module'],
+                'name' => $item['name'],
+                'grades' => $grades,
+            );
         }
 
         return $result;
@@ -393,10 +389,9 @@ class local_secretaria_operations {
             if (!$courseid = $this->moodle->get_course_id($course)) {
                 throw new local_secretaria_exception('Unknown course');
             }
-            $grade = $this->moodle->grade_get_course_grade($userid, $courseid);
             $result[] = array(
                 'course' => $course,
-                'grade' => $grade ? $grade->str_grade : null,
+                'grade' => $this->moodle->get_course_grade($userid, $courseid),
             );
         }
 
@@ -546,6 +541,9 @@ interface local_secretaria_moodle {
     function delete_role_assignment($courseid, $userid, $roleid);
     function get_course_id($shortname);
     function get_courses();
+    function get_course_grade($userid, $courseid);
+    function get_grade_items($courseid);
+    function get_grades($itemid, $userids);
     function get_group_id($courseid, $name);
     function get_group_members($groupid);
     function get_role_assignments_by_course($courseid);
@@ -556,10 +554,6 @@ interface local_secretaria_moodle {
     function get_user_id($username);
     function get_user_lastaccess($userids);
     function get_user_record($username);
-    function grade_get_course_grade($userid, $courseid);
-    function grade_get_grades($courseid, $itemtype, $itemmodule,
-                              $iteminstance, $userids);
-    function grade_item_fetch_all($courseid);
     function groups_add_member($groupid, $userid);
     function groups_create_group($courseid, $name, $description);
     function groups_delete_group($groupid);

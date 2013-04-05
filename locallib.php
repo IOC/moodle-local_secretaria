@@ -137,6 +137,14 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_field('course', 'id', array('shortname' => $shortname));
     }
 
+    function get_course_grade($userid, $courseid) {
+        grade_regrade_final_grades($courseid);
+        $grade_item = grade_item::fetch_course_item($courseid);
+        $grade_grade = grade_grade::fetch(array('userid' => $userid, 'itemid' => $grade_item->id));
+        $value = grade_format_gradevalue($grade_grade->finalgrade, $grade_item);
+        return $grade_item->needsupdate ? get_string('error') : $value;
+    }
+
     function get_courses() {
         global $DB;
         $select = 'id != :siteid';
@@ -144,6 +152,48 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $fields = 'id, shortname';
         return $DB->get_records_select('course', $select, $params, '', $fields);
    }
+
+    function get_grade_items($courseid) {
+        $result = array();
+
+        $grade_items = grade_item::fetch_all(array('courseid' => $courseid)) ?: array();
+
+        foreach ($grade_items as $grade_item) {
+            if ($grade_item->itemtype == 'course') {
+                $name = null;
+            } elseif ($grade_item->itemtype == 'category') {
+                $grade_category = $grade_item->load_parent_category();
+                $name = $grade_category->get_name();
+            } else {
+                $name = $grade_item->itemname;
+            }
+            $result[] = array(
+                'id' => $grade_item->id,
+                'idnumber' => $grade_item->idnumber,
+                'type' => $grade_item->itemtype,
+                'module' => $grade_item->itemmodule,
+                'name' => $name,
+                'sortorder' => $grade_item->sortorder,
+            );
+        }
+
+        return $result;
+    }
+
+    function get_grades($itemid, $userids) {
+        $result = array();
+
+        $grade_item = grade_item::fetch(array('id' => $itemid));
+        $errors = grade_regrade_final_grades($grade_item->courseid);
+        $grade_grades = grade_grade::fetch_users_grades($grade_item, $userids);
+
+        foreach ($userids as $userid) {
+            $value = grade_format_gradevalue($grade_grades[$userid]->finalgrade, $grade_item);
+            $result[$userid] = isset($errors[$itemid]) ? get_string('error') : $value;
+        }
+
+        return $result;
+    }
 
     function get_group_id($courseid, $name) {
         return groups_get_group_by_name($courseid, $name);
@@ -290,32 +340,6 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
              'username' => $username,
              'deleted' => 0,
          ));
-     }
-
-     function grade_get_course_grade($userid, $courseid) {
-         return grade_get_course_grade($userid, $courseid);
-     }
-
-     function grade_get_grades($courseid, $itemtype, $itemmodule, $iteminstance, $userids) {
-        $grades = grade_get_grades($courseid, $itemtype, $itemmodule, $iteminstance, $userids);
-        return current($grades->items)->grades;
-     }
-
-     function grade_item_fetch_all($courseid) {
-        $items = grade_item::fetch_all(array('courseid' => $courseid));
-        if ($items) {
-            foreach ($items as $item) {
-                if ($item->itemtype == 'course') {
-                    $item->itemname = null;
-                    $item->itemmodule = null;
-                } elseif ($item->itemtype == 'category') {
-                    $category = $item->load_parent_category();
-                    $item->itemname = $category->get_name();
-                    $item->itemmodule = null;
-                }
-            }
-        }
-        return $items;
      }
 
      function groups_add_member($groupid, $userid) {
