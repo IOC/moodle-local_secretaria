@@ -77,7 +77,7 @@ class GetUserTest extends OperationTest {
 
         $result = $this->operations->get_user('user');
 
-        $this->assertThat($result, $this->equalTo(array(
+        $this->assertThat($result, $this->identicalTo(array(
             'username' => 'user',
             'firstname' => 'First',
             'lastname' => 'Last',
@@ -120,7 +120,7 @@ class GetUserLastAccessTest extends OperationTest {
 
         $result = $this->operations->get_user_lastaccess(array('user1', 'user2', 'user3'));
 
-        $this->assertThat($result, $this->equalTo(array(
+        $this->assertThat($result, $this->identicalTo(array(
             array('user' => 'user1', 'course' => 'CP1', 'time' => 1234567891),
             array('user' => 'user1', 'course' => 'CP2', 'time' => 1234567892),
             array('user' => 'user2', 'course' => 'CP1', 'time' => 1234567893),
@@ -388,7 +388,7 @@ class GetCcourseEnrolmentsTest extends OperationTest {
 
         $result = $this->operations->get_course_enrolments('course1');
 
-        $this->assertThat($result, $this->equalTo(array(
+        $this->assertThat($result, $this->identicalTo(array(
             array('user' => 'user1', 'role' => 'role1'),
             array('user' => 'user2', 'role' => 'role2'),
         )));
@@ -401,7 +401,7 @@ class GetCcourseEnrolmentsTest extends OperationTest {
 
         $result = $this->operations->get_course_enrolments('course1');
 
-        $this->assertThat($result, $this->equalTo(array()));
+        $this->assertThat($result, $this->identicalTo(array()));
     }
 
     function test_unknown_course() {
@@ -423,7 +423,7 @@ class GetUserEnrolmentsTest extends OperationTest {
 
         $result = $this->operations->get_user_enrolments('user1');
 
-        $this->assertThat($result, $this->equalTo(array(
+        $this->assertThat($result, $this->identicalTo(array(
             array('course' => 'course1', 'role' => 'role1'),
             array('course' => 'course2', 'role' => 'role2'),
         )));
@@ -436,7 +436,7 @@ class GetUserEnrolmentsTest extends OperationTest {
 
         $result = $this->operations->get_user_enrolments('user1');
 
-        $this->assertThat($result, $this->equalTo(array()));
+        $this->assertThat($result, $this->identicalTo(array()));
     }
 
     function test_unknown_user() {
@@ -585,7 +585,7 @@ class GetGroupsTest extends OperationTest {
 
         $result = $this->operations->get_groups('course1');
 
-        $this->assertThat($result, $this->equalTo(array(
+        $this->assertThat($result, $this->identicalTo(array(
             array('name' => 'group1', 'description' => 'first group'),
             array('name' => 'group2', 'description' => 'second group'),
         )));
@@ -597,7 +597,7 @@ class GetGroupsTest extends OperationTest {
 
         $result = $this->operations->get_groups('course1');
 
-        $this->assertThat($result, $this->equalTo(array()));
+        $this->assertThat($result, $this->identicalTo(array()));
     }
 
     function test_unknown_course() {
@@ -679,7 +679,7 @@ class GetGroupMembersTest extends OperationTest {
 
         $result = $this->operations->get_group_members('course1', 'group1');
 
-        $this->assertThat($result, $this->equalTo(array('user1', 'user2')));
+        $this->assertThat($result, $this->identicalTo(array('user1', 'user2')));
     }
 
     function test_no_members() {
@@ -690,7 +690,7 @@ class GetGroupMembersTest extends OperationTest {
 
         $result = $this->operations->get_group_members('course1', 'group1');
 
-        $this->assertThat($result, $this->equalTo(array()));
+        $this->assertThat($result, $this->identicalTo(array()));
     }
 
     function test_unknown_course() {
@@ -793,7 +793,7 @@ class GetUserGroupsTest extends OperationTest {
 
         $result = $this->operations->get_user_groups('user1', 'course1');
 
-        $this->assertThat($result, $this->equalTo(array('group1', 'group2')));
+        $this->assertThat($result, $this->identicalTo(array('group1', 'group2')));
     }
 
     function test_unknown_user() {
@@ -818,7 +818,7 @@ class GetUserGroupsTest extends OperationTest {
 
         $result = $this->operations->get_user_groups('user1', 'course1');
 
-        $this->assertThat($result, $this->equalTo(array()));
+        $this->assertThat($result, $this->identicalTo(array()));
     }
 }
 
@@ -866,11 +866,11 @@ class GetCourseGradesTest extends OperationTest {
 
         $result = $this->operations->get_course_grades('course1', array('user1', 'user2'));
 
-        $this->assertThat($result, $this->equalTo(array(
+        $this->assertThat($result, $this->identicalTo(array(
             array(
+                'idnumber' => 'gi2',
                 'type' => 'category',
                 'module' => null,
-                'idnumber' => 'gi2',
                 'name' => 'Category 1',
                 'grades' => array(
                     array('user' => 'user1', 'grade' => '6.1'),
@@ -878,9 +878,9 @@ class GetCourseGradesTest extends OperationTest {
                 ),
             ),
             array(
+                'idnumber' => 'gi3',
                 'type' => 'module',
                 'module' => 'assignment',
-                'idnumber' => 'gi3',
                 'name' => 'Assignment 1',
                 'grades' => array(
                     array('user' => 'user1', 'grade' => '7.1'),
@@ -888,9 +888,9 @@ class GetCourseGradesTest extends OperationTest {
                 ),
             ),
             array(
+                'idnumber' => 'gi1',
                 'type' => 'course',
                 'module' => null,
-                'idnumber' => 'gi1',
                 'name' => null,
                 'grades' => array(
                     array('user' => 'user1', 'grade' => '5.1'),
@@ -926,7 +926,7 @@ class GetUserGradesTest extends OperationTest {
         $result = $this->operations->get_user_grades(
             'user1', array('course1', 'course2'));
 
-        $this->assertThat($result, $this->equalTo(array(
+        $this->assertThat($result, $this->identicalTo(array(
             array('course' => 'course1', 'grade' => '5.1'),
             array('course' => 'course2', 'grade' => '6.2'),
         )));
@@ -1081,7 +1081,7 @@ class GetSurveysTest extends OperationTest {
 
         $result = $this->operations->get_surveys('course1');
 
-        $this->assertThat($result, $this->equalTo(array(
+        $this->assertThat($result, $this->identicalTo(array(
             array('idnumber' => 'S1', 'name' => 'Survey 1', 'type' => 'private'),
             array('idnumber' => 'S2', 'name' => 'Survey 2', 'type' => 'public'),
             array('idnumber' => 'S3', 'name' => 'Survey 3', 'type' => 'template'),
@@ -1299,7 +1299,7 @@ class GetCoursesTest extends OperationTest {
 
         $result = $this->operations->get_courses();
 
-        $this->assertThat($result, $this->equalTo(
+        $this->assertThat($result, $this->identicalTo(
             array('course1', 'course2', 'course3')
         ));
     }
@@ -1310,7 +1310,7 @@ class GetCoursesTest extends OperationTest {
 
         $result = $this->operations->get_courses();
 
-        $this->assertThat($result, $this->equalTo(array()));
+        $this->assertThat($result, $this->identicalTo(array()));
     }
 }
 
