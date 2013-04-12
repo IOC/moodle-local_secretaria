@@ -172,6 +172,26 @@ $functions = array(
         'type'        => 'read',
     ),
 
+    /* Asignments */
+
+    'secretaria_get_assignments' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'get_assignments',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Get assignments',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
+    ),
+
+    'secretaria_get_assignment_submissions' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'get_assignment_submissions',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Get assignment submissions',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
+    ),
+
     /* Surveys */
 
     'secretaria_get_surveys' => array(

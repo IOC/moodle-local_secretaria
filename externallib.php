@@ -433,6 +433,55 @@ class moodle_local_secretaria_external extends external_api {
         );
     }
 
+    /* Assignments */
+
+    public static function get_assignments($course) {
+        return self::execute('get_assignments', array('course' => $course));
+    }
+
+    public static function get_assignments_parameters() {
+        return new external_function_parameters(array(
+            'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+        ));
+    }
+
+    public static function get_assignments_returns() {
+        return self::multiple_structure(
+            new external_single_structure(array(
+                'idnumber' => self::value_required(PARAM_RAW, 'Assignment idnumber'),
+                'name' => self::value_required(PARAM_TEXT, 'Assignment name'),
+                'opentime' => self::value_null(PARAM_INT, 'Open time'),
+                'closetime' => self::value_null(PARAM_INT, 'Close time'),
+            ))
+        );
+    }
+
+    public static function get_assignment_submissions($course, $idnumber) {
+        return self::execute('get_assignment_submissions', array(
+            'course' => $course,
+            'idnumber' => $idnumber,
+        ));
+    }
+
+    public static function get_assignment_submissions_parameters() {
+        return new external_function_parameters(array(
+            'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+            'idnumber' => self::value_required(PARAM_TEXT, 'Assignment idnumber'),
+        ));
+    }
+
+    public static function get_assignment_submissions_returns() {
+        return self::multiple_structure(
+            new external_single_structure(array(
+                'user' => self::value_required(PARAM_USERNAME, 'Submitter username'),
+                'grader' => self::value_null(PARAM_USERNAME, 'Grader username'),
+                'timesubmitted' => self::value_required(PARAM_INT, 'Time submitted'),
+                'timegraded' => self::value_null(PARAM_INT, 'Time graded'),
+                'numfiles' => self::value_required(PARAM_INT, 'Number of files'),
+            ))
+        );
+    }
+
     /* Surveys */
 
     public static function get_surveys($course) {

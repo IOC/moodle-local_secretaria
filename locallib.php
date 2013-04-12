@@ -132,6 +132,55 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         }
     }
 
+    function get_assignment_id($courseid, $idnumber) {
+        global $DB;
+        $sql = 'SELECT a.id'
+            . ' FROM {course_modules} cm '
+            . ' JOIN {modules} m ON m.id = cm.module'
+            . ' JOIN {assign} a ON a.id = cm.instance'
+            . ' WHERE cm.course = ? AND cm.idnumber = ?'
+            . ' AND m.name = ? AND a.course = ?';
+        return $DB->get_field_sql($sql, array($courseid, $idnumber, 'assign', $courseid));
+    }
+
+    function get_assignment_submissions($assignmentid) {
+        global $DB;
+
+        $modid = $DB->get_field('modules', 'id', array('name' => 'assign'));
+        $conditions = array('module' => $modid, 'instance' => $assignmentid);
+        $cmid = $DB->get_field('course_modules', 'id', $conditions);
+        $context = context_module::instance($cmid);
+
+        $sql = 'SELECT s.id, us.username AS user, ug.username AS grader,'
+            . ' s.timemodified AS timesubmitted, g.timemodified AS timegraded,'
+            . ' COUNT(f.id) AS numfiles'
+            . ' FROM {assign_submission} s'
+            . ' JOIN {user} us ON us.id = s.userid'
+            . ' LEFT JOIN {assign_grades} g ON g.assignment = s.assignment AND g.userid = s.userid'
+            . ' LEFT JOIN {user} ug ON ug.id = g.grader'
+            . ' LEFT JOIN {files} f ON f.userid = s.userid'
+            . ' AND f.contextid = :contextid AND f.filename != :filename'
+            . ' WHERE s.assignment = :assignmentid'
+            . ' GROUP BY user, grader, timesubmitted, timegraded';
+
+        return $DB->get_records_sql($sql, array(
+            'contextid' => $context->id,
+            'filename' => '.',
+            'assignmentid' => $assignmentid,
+        ));
+    }
+
+    function get_assignments($courseid) {
+        global $DB;
+        $sql = 'SELECT a.id, cm.idnumber, a.name,'
+            . ' a.allowsubmissionsfromdate AS opentime, a.duedate AS closetime'
+            . ' FROM {course_modules} cm '
+            . ' JOIN {modules} m ON m.id = cm.module'
+            . ' JOIN {assign} a ON a.id = cm.instance'
+            . ' WHERE cm.course = ? AND m.name = ? AND a.course = ?';
+        return $DB->get_records_sql($sql, array($courseid, 'assign', $courseid));
+    }
+
     function get_course_id($shortname) {
         global $DB;
         return $DB->get_field('course', 'id', array('shortname' => $shortname));

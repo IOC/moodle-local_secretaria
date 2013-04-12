@@ -398,6 +398,59 @@ class local_secretaria_operations {
         return $result;
     }
 
+    /* Assignments */
+
+    function get_assignments($course) {
+        if (!$courseid = $this->moodle->get_course_id($course)) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        $result = array();
+
+        if ($records = $this->moodle->get_assignments($courseid)) {
+            foreach ($records as $record) {
+                $result[] = array(
+                    'idnumber' => $record->idnumber,
+                    'name' => $record->name,
+                    'opentime' => (int) $record->opentime ?: null,
+                    'closetime' => (int) $record->closetime ?: null,
+                );
+            }
+        }
+
+        return $result;
+    }
+
+    function get_assignment_submissions($course, $idnumber) {
+        if (!$idnumber) {
+            throw new local_secretaria_exception('Invalid parameters');
+        }
+
+        if (!$courseid = $this->moodle->get_course_id($course)) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        if (!$assignmentid = $this->moodle->get_assignment_id($courseid, $idnumber)) {
+            throw new local_secretaria_exception('Unknown assignment');
+        }
+
+        $result = array();
+
+        if ($records = $this->moodle->get_assignment_submissions($assignmentid)) {
+            foreach ($records as $record) {
+                $result[] = array(
+                    'user' => $record->user,
+                    'grader' => $record->grader,
+                    'timesubmitted' => (int) $record->timesubmitted,
+                    'timegraded' => (int) $record->timegraded ?: null,
+                    'numfiles' => (int) $record->numfiles,
+                );
+            }
+        }
+
+        return $result;
+    }
+
     /* Surveys */
 
     function get_surveys($course) {
@@ -539,6 +592,9 @@ interface local_secretaria_moodle {
     function create_user($auth, $username, $password, $firstname, $lastname, $email);
     function delete_user($record);
     function delete_role_assignment($courseid, $userid, $roleid);
+    function get_assignment_id($courseid, $idnumber);
+    function get_assignment_submissions($assignmentid);
+    function get_assignments($courseid);
     function get_course_id($shortname);
     function get_courses();
     function get_course_grade($userid, $courseid);

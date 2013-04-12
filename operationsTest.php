@@ -944,6 +944,123 @@ class GetUserGradesTest extends OperationTest {
     }
 }
 
+/* Assignments */
+
+class GetAssignmentsTest extends OperationTest {
+
+    function test() {
+        $this->having_course_id('course1', 101);
+        $records = array(
+            (object) array(
+                'id' => '201',
+                'name' => 'Assignment 1',
+                'idnumber' => 'A1',
+                'opentime' => '1234567891',
+                'closetime' => '1234567892',
+            ),
+            (object) array(
+                'id' => '202',
+                'name' => 'Assignment 2',
+                'idnumber' => 'A2',
+                'opentime' => '0',
+                'closetime' => '1234567893',
+            ),
+            (object) array(
+                'id' => '203',
+                'name' => 'Assignment 3',
+                'idnumber' => '',
+                'opentime' => '1234567894',
+                'closetime' => '0',
+            ),
+        );
+        $this->moodle->shouldReceive('get_assignments')->with(101)->andReturn($records);
+
+        $result = $this->operations->get_assignments('course1');
+
+        $this->assertThat($result, $this->identicalTo(array(
+            array('idnumber' => 'A1',
+                  'name' => 'Assignment 1',
+                  'opentime' => 1234567891,
+                  'closetime' => 1234567892),
+            array('idnumber' => 'A2',
+                  'name' => 'Assignment 2',
+                  'opentime' => null,
+                  'closetime' => 1234567893),
+            array('idnumber' => '',
+                  'name' => 'Assignment 3',
+                  'opentime' => 1234567894,
+                  'closetime' => null),
+        )));
+    }
+
+    function test_unknown_course() {
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+        $this->operations->get_assignments('course1');
+    }
+}
+
+class GetAssignmentSubmissionsTest extends OperationTest {
+
+    function test() {
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_assignment_id')->with(101, 'A1')->andReturn(201);
+        $records = array(
+            (object) array(
+                'id' => '301',
+                'user' => 'student1',
+                'grader' => 'teacher1',
+                'timesubmitted' => '1234567891',
+                'timegraded' => '1234567892',
+                'numfiles' => '1',
+            ),
+            (object) array(
+                'id' => '302',
+                'user' => 'student2',
+                'grader' => 'teacher2',
+                'timesubmitted' => '1234567893',
+                'timegraded' => '1234567894',
+                'numfiles' => '2',
+            ),
+            (object) array(
+                'id' => '301',
+                'user' => 'student3',
+                'grader' => null,
+                'timesubmitted' => '1234567895',
+                'timegraded' => null,
+                'numfiles' => '0',
+            ),
+        );
+        $this->moodle->shouldReceive('get_assignment_submissions')->with(201)->andReturn($records);
+
+        $result = $this->operations->get_assignment_submissions('course1', 'A1');
+
+        $this->assertThat($result, $this->identicalTo(array(
+            array('user' => 'student1',
+                  'grader' => 'teacher1',
+                  'timesubmitted' => 1234567891,
+                  'timegraded' => 1234567892,
+                  'numfiles' => 1),
+            array('user' => 'student2',
+                  'grader' => 'teacher2',
+                  'timesubmitted' => 1234567893,
+                  'timegraded' => 1234567894,
+                  'numfiles' => 2),
+            array('user' => 'student3',
+                  'grader' => null,
+                  'timesubmitted' => 1234567895,
+                  'timegraded' => null,
+                  'numfiles' => 0),
+        )));
+    }
+
+   function test_unknown_course() {
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+        $this->operations->get_assignment_submissions('course1', 'A1');
+    }
+
+}
+
+
 /* Surveys */
 
 class GetSurveysTest extends OperationTest {
@@ -972,9 +1089,23 @@ class GetSurveysTest extends OperationTest {
         )));
     }
 
+    function test_blank_idnumber() {
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->operations->get_assignment_submissions('course1', '');
+    }
+
     function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_surveys('course1');
+    }
+
+    function test_unknown_assignment() {
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_assignment_id')->with(101, 'A1')->andReturn(false);
+
+        $this->setExpectedException('local_secretaria_exception', 'Unknown assignment');
+
+        $this->operations->get_assignment_submissions('course1', 'A1');
     }
 }
 
