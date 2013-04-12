@@ -846,7 +846,7 @@ class GetCourseGradesTest extends OperationTest {
             ),
             array(
                 'id' => 403,
-                'idnumber' => 'gi3',
+                'idnumber' => null,
                 'type' => 'module',
                 'module' => 'assignment',
                 'name' => 'Assignment 1',
@@ -878,7 +878,7 @@ class GetCourseGradesTest extends OperationTest {
                 ),
             ),
             array(
-                'idnumber' => 'gi3',
+                'idnumber' => '',
                 'type' => 'module',
                 'module' => 'assignment',
                 'name' => 'Assignment 1',
@@ -968,7 +968,7 @@ class GetAssignmentsTest extends OperationTest {
             (object) array(
                 'id' => '203',
                 'name' => 'Assignment 3',
-                'idnumber' => '',
+                'idnumber' => null,
                 'opentime' => '1234567894',
                 'closetime' => '0',
             ),
@@ -1074,7 +1074,7 @@ class GetSurveysTest extends OperationTest {
             (object) array('id' => 203, 'name' => 'Survey 3',
                            'idnumber' => 'S3', 'realm' => 'template'),
             (object) array('id' => 204, 'name' => 'Survey 4',
-                           'idnumber' => '', 'realm' => 'template'),
+                           'idnumber' => null, 'realm' => 'template'),
         );
         $this->having_course_id('course1', 101);
         $this->moodle->shouldReceive('get_surveys')->with(101)->andReturn($records);

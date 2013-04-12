@@ -367,7 +367,7 @@ class local_secretaria_operations {
                 $grades[] = array('user' => $usernames[$userid], 'grade' => $grade);
             }
             $result[] = array(
-                'idnumber' => $item['idnumber'],
+                'idnumber' => $item['idnumber'] ?: '',
                 'type' => $item['type'],
                 'module' => $item['module'],
                 'name' => $item['name'],
@@ -410,7 +410,7 @@ class local_secretaria_operations {
         if ($records = $this->moodle->get_assignments($courseid)) {
             foreach ($records as $record) {
                 $result[] = array(
-                    'idnumber' => $record->idnumber,
+                    'idnumber' => $record->idnumber ?: '',
                     'name' => $record->name,
                     'opentime' => (int) $record->opentime ?: null,
                     'closetime' => (int) $record->closetime ?: null,
@@ -463,7 +463,7 @@ class local_secretaria_operations {
         if ($records = $this->moodle->get_surveys($courseid)) {
             foreach ($records as $record) {
                 $result[] = array(
-                    'idnumber' => $record->idnumber,
+                    'idnumber' => $record->idnumber ?: '',
                     'name' => $record->name,
                     'type' => $record->realm,
                 );
