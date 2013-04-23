@@ -371,6 +371,9 @@ class local_secretaria_operations {
                 'type' => $item['type'],
                 'module' => $item['module'],
                 'name' => $item['name'],
+                'grademin' => $item['grademin'],
+                'grademax' => $item['grademax'],
+                'gradepass' => $item['gradepass'],
                 'grades' => $grades,
             );
         }

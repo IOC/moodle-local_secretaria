@@ -223,6 +223,9 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
                 'module' => $grade_item->itemmodule,
                 'name' => $name,
                 'sortorder' => $grade_item->sortorder,
+                'grademin' => grade_format_gradevalue($grade_item->grademin, $grade_item),
+                'grademax' => grade_format_gradevalue($grade_item->grademax, $grade_item),
+                'gradepass' => grade_format_gradevalue($grade_item->gradepass, $grade_item),
             );
         }
 

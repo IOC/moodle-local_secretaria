@@ -835,6 +835,9 @@ class GetCourseGradesTest extends OperationTest {
                 'module' => null,
                 'name' => null,
                 'sortorder' => 3,
+                'grademin' => '1',
+                'grademax' => '10',
+                'gradepass' => '5',
             ),
             array(
                 'id' => 402,
@@ -843,6 +846,9 @@ class GetCourseGradesTest extends OperationTest {
                 'module' => null,
                 'name' => 'Category 1',
                 'sortorder' => 1,
+                'grademin' => 'E',
+                'grademax' => 'A',
+                'gradepass' => 'C',
             ),
             array(
                 'id' => 403,
@@ -851,6 +857,9 @@ class GetCourseGradesTest extends OperationTest {
                 'module' => 'assignment',
                 'name' => 'Assignment 1',
                 'sortorder' => 2,
+                'grademin' => '',
+                'grademax' => '',
+                'gradepass' => '',
             ),
         );
         $this->having_course_id('course1', 101);
@@ -872,6 +881,9 @@ class GetCourseGradesTest extends OperationTest {
                 'type' => 'category',
                 'module' => null,
                 'name' => 'Category 1',
+                'grademin' => 'E',
+                'grademax' => 'A',
+                'gradepass' => 'C',
                 'grades' => array(
                     array('user' => 'user1', 'grade' => '6.1'),
                     array('user' => 'user2', 'grade' => '6.2'),
@@ -882,6 +894,9 @@ class GetCourseGradesTest extends OperationTest {
                 'type' => 'module',
                 'module' => 'assignment',
                 'name' => 'Assignment 1',
+                'grademin' => '',
+                'grademax' => '',
+                'gradepass' => '',
                 'grades' => array(
                     array('user' => 'user1', 'grade' => '7.1'),
                     array('user' => 'user2', 'grade' => '7.2'),
@@ -892,6 +907,9 @@ class GetCourseGradesTest extends OperationTest {
                 'type' => 'course',
                 'module' => null,
                 'name' => null,
+                'grademin' => '1',
+                'grademax' => '10',
+                'gradepass' => '5',
                 'grades' => array(
                     array('user' => 'user1', 'grade' => '5.1'),
                     array('user' => 'user2', 'grade' => '5.2'),

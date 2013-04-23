@@ -398,6 +398,9 @@ class moodle_local_secretaria_external extends external_api {
                 'module' => self::value_null(PARAM_RAW, 'Item module'),
                 'idnumber' => self::value_null(PARAM_RAW, 'Item idnumber'),
                 'name' => self::value_null(PARAM_RAW, 'Item name'),
+                'grademin' => self::value_required(PARAM_RAW, 'Minimum grade'),
+                'grademax' => self::value_required(PARAM_RAW, 'Maximum grade'),
+                'gradepass' => self::value_required(PARAM_RAW, 'Grade to pass'),
                 'grades' => self::multiple_structure(
                     new external_single_structure(array(
                         'user' => self::value_required(PARAM_USERNAME, 'Username'),
