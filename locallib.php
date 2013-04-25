@@ -181,9 +181,10 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_sql($sql, array($courseid, 'assign', $courseid));
     }
 
-    function get_course_id($shortname) {
+    function get_course($shortname) {
         global $DB;
-        return $DB->get_field('course', 'id', array('shortname' => $shortname));
+        return $DB->get_record('course', array('shortname' => $shortname),
+                               'id, shortname, fullname, visible, startdate');
     }
 
     function get_course_grade($userid, $courseid) {
@@ -192,6 +193,11 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $grade_grade = grade_grade::fetch(array('userid' => $userid, 'itemid' => $grade_item->id));
         $value = grade_format_gradevalue($grade_grade->finalgrade, $grade_item);
         return $grade_item->needsupdate ? get_string('error') : $value;
+    }
+
+    function get_course_id($shortname) {
+        global $DB;
+        return $DB->get_field('course', 'id', array('shortname' => $shortname));
     }
 
     function get_courses() {
@@ -503,6 +509,15 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         } else {
             $this->transaction = $DB->start_delegated_transaction();
         }
+    }
+
+    function update_course($record) {
+        global $DB;
+        $record->timemodified = time();
+        if (isset($record->visible)) {
+            $record->visibleold = $DB->get_field('course', 'visible', array('id' => $record->id));
+        }
+        $DB->update_record('course', $record);
     }
 
     function update_record($table, $record) {

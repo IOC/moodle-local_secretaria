@@ -49,6 +49,44 @@ $functions = array(
         'type'        => 'write',
     ),
 
+    /* Courses */
+
+    'secretaria_has_course' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'has_course',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Has course',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
+    ),
+
+    'secretaria_get_course' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'get_course',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Get course',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
+    ),
+
+    'secretaria_update_course' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'update_course',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Update course',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
+    ),
+
+    'secretaria_get_courses' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'get_courses',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Get courses',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
+    ),
+
     /* Enrolments */
 
     'secretaria_get_course_enrolments' => array(
@@ -221,25 +259,5 @@ $functions = array(
         'description' => 'Send mail',
         'capabilities'=> 'local/secretaria:manage',
         'type'        => 'write',
-    ),
-
-    /* Control */
-
-    'secretaria_has_course' => array(
-        'classname'   => 'moodle_local_secretaria_external',
-        'methodname'  => 'has_course',
-        'classpath'   => 'local/secretaria/externallib.php',
-        'description' => 'Has course',
-        'capabilities'=> 'local/secretaria:manage',
-        'type'        => 'read',
-    ),
-
-    'secretaria_get_courses' => array(
-        'classname'   => 'moodle_local_secretaria_external',
-        'methodname'  => 'get_courses',
-        'classpath'   => 'local/secretaria/externallib.php',
-        'description' => 'Get courses',
-        'capabilities'=> 'local/secretaria:manage',
-        'type'        => 'read',
     ),
 );

@@ -155,6 +155,86 @@ class moodle_local_secretaria_external extends external_api {
         return null;
     }
 
+    /* Courses */
+
+    public static function has_course($course) {
+        return self::execute('has_course', array('course' => $course));
+    }
+
+    public static function has_course_parameters() {
+        return new external_function_parameters(array(
+            'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+        ));
+    }
+
+    public static function has_course_returns() {
+        return self::value_required(PARAM_BOOL, 'Has course');
+    }
+
+    public static function get_course($course) {
+        return self::execute('get_course', array('course' => $course));
+    }
+
+    public static function get_course_parameters() {
+        return new external_function_parameters(array(
+            'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+        ));
+    }
+
+    public static function get_course_returns() {
+        return new external_single_structure(array(
+            'shortname' => self::value_required(PARAM_TEXT, 'Course shortname'),
+            'fullname' => self::value_required(PARAM_TEXT, 'Course fullname'),
+            'visible' => self::value_required(PARAM_BOOL, 'Course visible?'),
+            'startdate' => new external_single_structure(array(
+               'year' => self::value_required(PARAM_INT, 'Start year'),
+               'month' => self::value_required(PARAM_INT, 'Start month'),
+               'day' => self::value_required(PARAM_INT, 'Start day'),
+            )),
+        ));
+    }
+
+    public static function update_course($course, $properties) {
+        return self::execute('update_course', array(
+            'course' => $course,
+            'properties' => $properties,
+        ));
+    }
+
+    public static function update_course_parameters() {
+        return new external_function_parameters(array(
+            'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+            'properties' => new external_single_structure(array(
+                'shortname' => self::value_optional(PARAM_TEXT, 'Course shortname'),
+                'fullname' => self::value_optional(PARAM_TEXT, 'Course fullname'),
+                'visible' => self::value_optional(PARAM_BOOL, 'Course visible?'),
+                'startdate' => new external_single_structure(array(
+                    'year' => self::value_required(PARAM_INT, 'Start year'),
+                    'month' => self::value_required(PARAM_INT, 'Start month'),
+                    'day' => self::value_required(PARAM_INT, 'Start day'),
+                ), '', VALUE_OPTIONAL),
+            )),
+        ));
+    }
+
+    public static function update_course_returns() {
+        return null;
+    }
+
+    public static function get_courses() {
+        return self::execute('get_courses', array());
+    }
+
+    public static function get_courses_parameters() {
+        return new external_function_parameters(array());
+    }
+
+    public static function get_courses_returns() {
+        return self::multiple_structure(
+            self::value_required(PARAM_TEXT, 'Course shortname')
+        );
+    }
+
     /* Enrolments */
     
     public static function get_course_enrolments($course) {
@@ -569,35 +649,5 @@ class moodle_local_secretaria_external extends external_api {
 
     public static function send_mail_returns() {
         return null;
-    }
-
-    /* Control */
-
-    public static function has_course($course) {
-        return self::execute('has_course', array('course' => $course));
-    }
-
-    public static function has_course_parameters() {
-        return new external_function_parameters(array(
-            'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
-        ));
-    }
-
-    public static function has_course_returns() {
-        return self::value_required(PARAM_BOOL, 'Has course');
-    }
-
-    public static function get_courses() {
-        return self::execute('get_courses', array());
-    }
-
-    public static function get_courses_parameters() {
-        return new external_function_parameters(array());
-    }
-
-    public static function get_courses_returns() {
-        return self::multiple_structure(
-            self::value_required(PARAM_TEXT, 'Course shortname')
-        );
     }
 }

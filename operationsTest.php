@@ -372,6 +372,159 @@ class DeleteUserTest extends OperationTest {
     }
 }
 
+/* Courses */
+
+class HasCourseTest extends OperationTest {
+
+    function test() {
+        $this->having_course_id('course1', 101);
+        $result = $this->operations->has_course('course1');
+        $this->assertThat($result, $this->isTrue());
+    }
+
+    function test_no_course() {
+        $result = $this->operations->has_course('course1');
+        $this->assertThat($result, $this->isFalse());
+    }
+}
+
+class GetCourseTest extends OperationTest {
+
+    function test() {
+        $record = (object) array(
+            'id' => '101',
+            'shortname' => 'course1',
+            'fullname' => 'Course 1',
+            'visible' => '1',
+            'startdate' => (string) mktime(0, 0, 0, 9, 17, 2012),
+        );
+        $this->moodle->shouldReceive('get_course')
+            ->with('course1')->andReturn($record);
+
+        $result = $this->operations->get_course('course1');
+
+        $this->assertThat($result, $this->identicalTo(array(
+            'shortname' => 'course1',
+            'fullname' => 'Course 1',
+            'visible' => true,
+            'startdate' => array('year' => 2012, 'month' => 9, 'day' => 17),
+        )));
+    }
+
+    function test_unknown_course() {
+        $this->moodle->shouldReceive('get_course')
+            ->with('course1')->andReturn(false);
+
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+
+        $this->operations->get_course('course1');
+    }
+}
+
+class UpdateCourseTest extends OperationTest {
+
+    function test() {
+        $this->having_course_id('course1', 101);
+        $this->having_course_id('course2', false);
+        $record = (object) array(
+            'id' => 101,
+            'shortname' => 'course2',
+            'fullname' => 'Course 2',
+            'visible' => 1,
+            'startdate' => mktime(0, 0, 0, 9, 17, 2012),
+        );
+
+        $this->moodle->shouldReceive('update_course')
+            ->with(Mockery::mustBe($record));
+
+        $this->operations->update_course('course1', array(
+            'shortname' => 'course2',
+            'fullname' => 'Course 2',
+            'visible' => true,
+            'startdate' => array('year' => 2012, 'month' => 9, 'day' => 17),
+        ));
+    }
+
+    function test_unknown_course() {
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+
+        $this->operations->update_course('course1', array());
+    }
+
+    function test_empty_properties() {
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('update_course')
+            ->with(Mockery::mustBe((object) array('id' => 101)));
+
+        $this->operations->update_course('course1', array());
+    }
+
+    function test_duplicate_shortname() {
+        $this->having_course_id('course1', 101);
+        $this->having_course_id('course2', 102);
+        $this->setExpectedException('local_secretaria_exception', 'Duplicate shortname');
+
+        $this->operations->update_course(
+            'course1', array('shortname' => 'course2'));
+    }
+
+    function test_equal_shortname() {
+        $this->having_course_id('course1', 101);
+        $this->having_course_id('COURSE1', 101);
+        $record = (object) array(
+            'id' => 101,
+            'shortname' => 'COURSE1'
+        );
+        $this->moodle->shouldReceive('update_course')
+            ->with(Mockery::mustBe($record));
+
+        $this->operations->update_course(
+            'course1', array('shortname' => 'COURSE1'));
+    }
+
+    function test_blank_shortname() {
+        $this->having_course_id('course1', 101);
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+
+        $this->operations->update_course('course1', array('shortname' => ''));
+    }
+
+    function test_blank_fullname() {
+        $this->having_course_id('course1', 101);
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+
+        $this->operations->update_course('course1', array('fullname' => ''));
+    }
+}
+
+class GetCoursesTest extends OperationTest {
+
+    function test() {
+        $records = array(
+            (object) array('id' => 101, 'shortname' => 'course1'),
+            (object) array('id' => 102, 'shortname' => 'course2'),
+            (object) array('id' => 103, 'shortname' => 'course3'),
+        );
+        $this->moodle->shouldReceive('get_courses')
+            ->with()->andReturn($records);
+
+        $result = $this->operations->get_courses();
+
+        $this->assertThat($result, $this->identicalTo(
+            array('course1', 'course2', 'course3')
+        ));
+    }
+
+    function test_no_courses() {
+        $this->moodle->shouldReceive('get_courses')
+            ->with()->andReturn(false);
+
+        $result = $this->operations->get_courses();
+
+        $this->assertThat($result, $this->identicalTo(array()));
+    }
+}
+
 /* Enrolments */
 
 class GetCcourseEnrolmentsTest extends OperationTest {
@@ -1285,50 +1438,6 @@ class CreateSurveyTest extends OperationTest {
         $this->setExpectedException('local_secretaria_exception', 'Unknown survey');
 
         $this->operations->create_survey($this->properties);
-    }
-}
-
-/* Control */
-
-class HasCourseTest extends OperationTest {
-
-    function test() {
-        $this->having_course_id('course1', 101);
-        $result = $this->operations->has_course('course1');
-        $this->assertThat($result, $this->isTrue());
-    }
-
-    function test_no_course() {
-        $result = $this->operations->has_course('course1');
-        $this->assertThat($result, $this->isFalse());
-    }
-}
-
-class GetCoursesTest extends OperationTest {
-
-    function test() {
-        $records = array(
-            (object) array('id' => 101, 'shortname' => 'course1'),
-            (object) array('id' => 102, 'shortname' => 'course2'),
-            (object) array('id' => 103, 'shortname' => 'course3'),
-        );
-        $this->moodle->shouldReceive('get_courses')
-            ->with()->andReturn($records);
-
-        $result = $this->operations->get_courses();
-
-        $this->assertThat($result, $this->identicalTo(
-            array('course1', 'course2', 'course3')
-        ));
-    }
-
-    function test_no_courses() {
-        $this->moodle->shouldReceive('get_courses')
-            ->with()->andReturn(false);
-
-        $result = $this->operations->get_courses();
-
-        $this->assertThat($result, $this->identicalTo(array()));
     }
 }
 

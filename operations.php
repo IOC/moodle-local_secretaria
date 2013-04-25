@@ -145,6 +145,80 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
+    /* Courses */
+
+    function has_course($shortname) {
+        return (bool) $this->moodle->get_course_id($shortname);
+    }
+
+    function get_course($shortname) {
+        if (!$record = $this->moodle->get_course($shortname)) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        $date = getdate($record->startdate);
+        return array(
+            'shortname' => $record->shortname,
+            'fullname' => $record->fullname,
+            'visible' => (bool) $record->visible,
+            'startdate' => array(
+                'year' => $date['year'],
+                'month' => $date['mon'],
+                'day' => $date['mday'],
+            ),
+        );
+    }
+
+    function update_course($shortname, $properties) {
+        if (!$courseid = $this->moodle->get_course_id($shortname)) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        $record = new stdClass;
+        $record->id = $courseid;
+
+        if (isset($properties['shortname'])) {
+            if (empty($properties['shortname'])) {
+                throw new local_secretaria_exception('Invalid parameters');
+            }
+            $otherid = $this->moodle->get_course_id($properties['shortname']);
+            if ($otherid and $otherid != $courseid) {
+                throw new local_secretaria_exception('Duplicate shortname');
+            }
+            $record->shortname = $properties['shortname'];
+        }
+
+        if (isset($properties['fullname'])) {
+            if (empty($properties['fullname'])) {
+                throw new local_secretaria_exception('Invalid parameters');
+            }
+            $record->fullname = $properties['fullname'];
+        }
+
+        if (isset($properties['visible'])) {
+            $record->visible = (int) $properties['visible'];
+        }
+
+        if (isset($properties['startdate'])) {
+            $record->startdate = mktime(0, 0, 0,
+                                        $properties['startdate']['month'],
+                                        $properties['startdate']['day'],
+                                        $properties['startdate']['year']);
+        }
+
+        $this->moodle->update_course($record);
+    }
+
+    function get_courses() {
+        $result = array();
+        if ($records = $this->moodle->get_courses()) {
+            foreach ($records as $record) {
+                $result[] = $record->shortname;
+            }
+        }
+        return $result;
+    }
+
     /* Enrolments */
 
     function get_course_enrolments($course) {
@@ -527,22 +601,6 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
-    /* Control */
-
-    function has_course($shortname) {
-        return (bool) $this->moodle->get_course_id($shortname);
-    }
-
-    function get_courses() {
-        $result = array();
-        if ($records = $this->moodle->get_courses()) {
-            foreach ($records as $record) {
-                $result[] = $record->shortname;
-            }
-        }
-        return $result;
-    }
-
     /* Misc */
 
     function send_mail($message) {
@@ -598,6 +656,7 @@ interface local_secretaria_moodle {
     function get_assignment_id($courseid, $idnumber);
     function get_assignment_submissions($assignmentid);
     function get_assignments($courseid);
+    function get_course($shortname);
     function get_course_id($shortname);
     function get_courses();
     function get_course_grade($userid, $courseid);
@@ -626,6 +685,7 @@ interface local_secretaria_moodle {
     function section_exists($courseid, $section);
     function send_mail($sender, $courseid, $subject, $content, $to, $cc, $bcc);
     function start_transaction();
+    function update_course($record);
     function update_password($userid, $password);
     function update_record($table, $record);
     function user_picture_url($userid);
