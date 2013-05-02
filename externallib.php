@@ -108,7 +108,7 @@ class moodle_local_secretaria_external extends external_api {
                 'password' => self::value_optional(PARAM_RAW, 'Plain text password'),
                 'firstname' => self::value_required(PARAM_NOTAGS, 'First name'),
                 'lastname' => self::value_required(PARAM_NOTAGS, 'Last name'),
-                'email' => self::value_required(PARAM_EMAIL, 'Email address'),
+                'email' => self::value_optional(PARAM_EMAIL, 'Email address'),
             )),
         ));
     }

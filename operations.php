@@ -52,10 +52,7 @@ class local_secretaria_operations {
     }
 
     function create_user($properties) {
-        if (!$properties['username'] or
-            !$properties['firstname'] or
-            !$properties['lastname'] or
-            !$properties['email']) {
+        if (!$properties['username'] or !$properties['firstname'] or !$properties['lastname']) {
             throw new local_secretaria_exception('Invalid parameters');
         }
 
@@ -79,7 +76,7 @@ class local_secretaria_operations {
             $properties['password'],
             $properties['firstname'],
             $properties['lastname'],
-            $properties['email']
+            isset($properties['email']) ? $properties['email'] : ''
         );
         $this->moodle->commit_transaction();
     }

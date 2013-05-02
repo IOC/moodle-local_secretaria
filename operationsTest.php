@@ -174,6 +174,20 @@ class CreateUserTest extends OperationTest {
         $this->operations->create_user($this->properties);
     }
 
+    function test_no_email() {
+        unset($this->properties['email']);
+        $this->moodle->shouldReceive('auth_plugin')->with()->andReturn('manual');
+        $this->moodle->shouldReceive('prevent_local_passwords')
+            ->with('manual')->andReturn(true);
+        $this->moodle->shouldReceive('start_transaction')->once()->ordered();
+        $this->moodle->shouldReceive('create_user')
+            ->with('manual', 'user1', false, 'First', 'Last', '')
+            ->once()->ordered();
+        $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
+
+        $this->operations->create_user($this->properties);
+    }
+
     function test_blank_username() {
         $this->properties['username'] = '';
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
@@ -190,13 +204,6 @@ class CreateUserTest extends OperationTest {
 
     function test_blank_lastname() {
         $this->properties['lastname'] = '';
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
-
-        $this->operations->create_user($this->properties);
-    }
-
-    function test_blank_email() {
-        $this->properties['email'] = '';
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->create_user($this->properties);
