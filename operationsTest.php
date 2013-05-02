@@ -19,7 +19,7 @@ abstract class OperationTest extends PHPUnit_Framework_TestCase {
         $this->moodle->shouldReceive('get_group_id')->andReturn(false)->byDefault();
         $this->moodle->shouldReceive('get_role_id')->andReturn(false)->byDefault();
         $this->moodle->shouldReceive('get_user_id')->andReturn(false)->byDefault();
-        $this->moodle->shouldReceive('get_user_record')->andReturn(false)->byDefault();
+        $this->moodle->shouldReceive('get_user')->andReturn(false)->byDefault();
         $this->operations = new local_secretaria_operations($this->moodle);
     }
 
@@ -47,8 +47,8 @@ abstract class OperationTest extends PHPUnit_Framework_TestCase {
             ->with($username)->andReturn($userid);
     }
 
-    protected function having_user_record($username, $record) {
-        $this->moodle->shouldReceive('get_user_record')
+    protected function having_user($username, $record) {
+        $this->moodle->shouldReceive('get_user')
             ->with($username)->andReturn((object) $record);
     }
 }
@@ -71,7 +71,7 @@ class GetUserTest extends OperationTest {
     }
 
     function test() {
-        $this->having_user_record('user', $this->record);
+        $this->having_user('user', $this->record);
         $this->moodle->shouldReceive('user_picture_url')->with(201)
             ->andReturn('http://example.org/user/pix.php/201/f1.jpg');
 
@@ -89,7 +89,7 @@ class GetUserTest extends OperationTest {
 
     function test_no_picture() {
         $this->record->picture = 0;
-        $this->having_user_record('user', $this->record);
+        $this->having_user('user', $this->record);
         $this->moodle->shouldReceive('user_picture_url')->with(201)
             ->andReturn('http://example.org/user/pix.php/201/f1.jpg');
 
@@ -231,15 +231,15 @@ class UpdateUserTest extends OperationTest {
             'lastname' => 'Last2',
             'email' => 'user2@example.org',
         );
-        $this->having_user_record('user1', array('id' => 201, 'auth' => 'manual'));
+        $this->having_user('user1', array('id' => 201, 'auth' => 'manual'));
         $this->having_user_id('user2', false);
         $this->moodle->shouldReceive('prevent_local_passwords')
             ->with('manual')->andReturn(false);
         $this->moodle->shouldReceive('check_password')
             ->with('abc123')->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('update_record')
-            ->with('user', Mockery::mustBe($record))->once()->ordered();
+        $this->moodle->shouldReceive('update_user')
+            ->with(Mockery::mustBe($record))->once()->ordered();
         $this->moodle->shouldReceive('update_password')
             ->with(201, 'abc123')->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
@@ -260,7 +260,7 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_blank_username() {
-        $this->having_user_record('user1', array('id' => 201));
+        $this->having_user('user1', array('id' => 201));
         $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
@@ -268,7 +268,7 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_duplicate_username() {
-        $this->having_user_record('user1', array('id' => 201));
+        $this->having_user('user1', array('id' => 201));
         $this->having_user_id('user2', 202);
         $this->setExpectedException('local_secretaria_exception', 'Duplicate username');
 
@@ -276,15 +276,19 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_same_username() {
-        $this->having_user_record('user1', array('id' => 201));
+        $record = (object) array('id' => 201, 'username' => 'USER1');
+        $this->having_user('user1', array('id' => 201));
+        $this->having_user_id('USER1', 201);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
+        $this->moodle->shouldReceive('update_user')
+            ->with(Mockery::mustBe($record))->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
-        $this->operations->update_user('user1', array('username' => 'user1'));
+        $this->operations->update_user('user1', array('username' => 'USER1'));
     }
 
     function test_password_only() {
-        $this->having_user_record('user1', array('id' => 201, 'auth' => 'manual'));
+        $this->having_user('user1', array('id' => 201, 'auth' => 'manual'));
         $this->moodle->shouldReceive('prevent_local_passwords')
             ->with('manual')->andReturn(false);
         $this->moodle->shouldReceive('check_password')
@@ -298,7 +302,7 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_invalid_password() {
-        $this->having_user_record('user1', array('id' => 201, 'auth' => 'manual'));
+        $this->having_user('user1', array('id' => 201, 'auth' => 'manual'));
         $this->moodle->shouldReceive('prevent_local_passwords')
             ->with('manual')->andReturn(false);
         $this->moodle->shouldReceive('check_password')
@@ -309,7 +313,7 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_prevent_local_passwords() {
-        $this->having_user_record('user1', array('id' => 201, 'auth' => 'msso'));
+        $this->having_user('user1', array('id' => 201, 'auth' => 'msso'));
         $this->moodle->shouldReceive('prevent_local_passwords')
             ->with('msso')->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
@@ -319,14 +323,14 @@ class UpdateUserTest extends OperationTest {
     }
 
     function test_blank_firstname() {
-        $this->having_user_record('user1', array('id' => 201));
+        $this->having_user('user1', array('id' => 201));
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->update_user('user1', array('firstname' => ''));
     }
 
     function test_blank_lastname() {
-        $this->having_user_record('user1', array('id' => 201));
+        $this->having_user('user1', array('id' => 201));
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->update_user('user1', array('lastname' => ''));
@@ -334,10 +338,10 @@ class UpdateUserTest extends OperationTest {
 
     function test_blank_email() {
         $record = (object) array('id' => 201, 'email' => '');
-        $this->having_user_record('user1', array('id' => 201));
+        $this->having_user('user1', array('id' => 201));
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('update_record')
-            ->with('user', Mockery::mustBe($record))->once()->ordered();
+        $this->moodle->shouldReceive('update_user')
+            ->with(Mockery::mustBe($record))->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->update_user('user1', array('email' => ''));
@@ -347,19 +351,9 @@ class UpdateUserTest extends OperationTest {
 class DeleteUserTest extends OperationTest {
 
     function test() {
-        $record = (object) array(
-            'id' => 201,
-            'username' => 'user1',
-            'password' => 'abc123',
-            'firstname' => 'First2',
-            'lastname' => 'Last2',
-            'email' => 'user2@example.org',
-        );
-        $this->having_user_record('user1', $record);
+        $this->having_user_id('user1', 101);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('delete_user')
-            ->with(Mockery::mustBe($record))
-            ->once()->ordered();
+        $this->moodle->shouldReceive('delete_user')->with(101)->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->delete_user('user1');
@@ -1319,10 +1313,9 @@ class CreateSurveyTest extends OperationTest {
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
         $this->moodle->shouldReceive('get_survey_id')->with(101, 'S1')->andReturn(201);
         $this->moodle->shouldReceive('get_survey_id')->with(102, 'S2')->andReturn(false);
-        $this->moodle->shouldReceive('make_timestamp')->with(2012, 10, 22)->andReturn(1234567890);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('create_survey')
-            ->with(102, 7, 'S2', 'Survey 2', 'Summary 2', 1234567890, 0, 201)
+            ->with(102, 7, 'S2', 'Survey 2', 'Summary 2', mktime(0, 0, 0, 10, 22, 2012), 0, 201)
             ->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
@@ -1336,11 +1329,9 @@ class CreateSurveyTest extends OperationTest {
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
         $this->moodle->shouldReceive('get_survey_id')->with(101, 'S1')->andReturn(201);
         $this->moodle->shouldReceive('get_survey_id')->with(102, 'S2')->andReturn(false);
-        $this->moodle->shouldReceive('make_timestamp')
-            ->with(2012, 10, 22, 23, 55)->andReturn(1234567890);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('create_survey')
-            ->with(102, 7, 'S2', 'Survey 2', 'Summary 2', 0, 1234567890, 201)
+            ->with(102, 7, 'S2', 'Survey 2', 'Summary 2', 0, mktime(23, 55, 0, 10, 22, 2012), 201)
             ->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 

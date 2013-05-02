@@ -108,7 +108,9 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         events_trigger('user_created', $DB->get_record('user', array('id' => $id)));
     }
 
-    function delete_user($record) {
+    function delete_user($userid) {
+        global $DB;
+        $record = $DB->get_record('user', array('id' => $userid), 'id, username');
         delete_user($record);
     }
 
@@ -371,6 +373,20 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
+     function get_user($username) {
+         global $CFG, $DB;
+
+         $conditions = array(
+             'mnethostid' => $CFG->mnet_localhost_id,
+             'username' => $username,
+             'deleted' => 0,
+         );
+
+         $fields = 'id, auth, username, firstname, lastname, email, lastaccess, picture';
+
+         return $DB->get_record('user', $conditions, $fields);
+     }
+
      function get_user_id($username) {
          global $CFG, $DB;
          return $DB->get_field('user', 'id', array(
@@ -389,15 +405,6 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
              . ' WHERE l.userid IN (' . implode(',', $userids) . ')';
 
          return $userids ? $DB->get_records_sql($sql) : false;
-     }
-
-     function get_user_record($username) {
-         global $CFG, $DB;
-         return $DB->get_record('user', array(
-             'mnethostid' => $CFG->mnet_localhost_id,
-             'username' => $username,
-             'deleted' => 0,
-         ));
      }
 
      function groups_add_member($groupid, $userid) {
@@ -520,15 +527,15 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $DB->update_record('course', $record);
     }
 
-    function update_record($table, $record) {
-        global $DB;
-        $DB->update_record($table, $record);
-    }
-
     function update_password($userid, $password) {
         global $DB;
         $record = $DB->get_record('user', array('id' => $userid));
         update_internal_user_password($record, $password);
+    }
+
+    function update_user($record) {
+        global $DB;
+        $DB->update_record('user', $record);
     }
 
     function user_picture_url($userid) {
