@@ -210,6 +210,29 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_select('course', $select, $params, '', $fields);
    }
 
+    function get_forum_stats($forumid) {
+        global $DB;
+        $sql = 'SELECT d.groupid, g.name AS groupname, COUNT(p.id) AS posts,'
+            . ' COUNT(DISTINCT d.id) AS discussions'
+            . ' FROM {forum_discussions} d'
+            . ' JOIN {forum_posts} p ON p.discussion = d.id'
+            . ' LEFT JOIN {groups} g ON g.id = d.groupid'
+            . ' WHERE d.forum = :forumid'
+            . ' GROUP BY d.groupid, g.name';
+        return $DB->get_records_sql($sql, array('forumid' => $forumid));
+    }
+
+    function get_forums($courseid) {
+        global $DB;
+        $sql = 'SELECT f.id, cm.idnumber, f.name, f.type'
+            . ' FROM {course_modules} cm'
+            . ' JOIN {module}s m ON m.id = cm.module'
+            . ' JOIN {forum} f ON f.id = cm.instance AND f.course = cm.course'
+            . ' WHERE cm.course = :courseid AND m.name = :module';
+        $params = array('module' => 'forum', 'courseid' => $courseid);
+        return $DB->get_records_sql($sql, $params);
+    }
+
     function get_grade_items($courseid) {
         $result = array();
 

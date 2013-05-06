@@ -565,6 +565,35 @@ class moodle_local_secretaria_external extends external_api {
         );
     }
 
+    /* Forums */
+
+    public static function get_forum_stats($course) {
+        return self::execute('get_forum_stats', array('course' => $course));
+    }
+
+    public static function get_forum_stats_parameters() {
+        return new external_function_parameters(array(
+            'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+        ));
+    }
+
+    public static function get_forum_stats_returns() {
+        return self::multiple_structure(
+            new external_single_structure(array(
+                'idnumber' => self::value_required(PARAM_RAW, 'Forum idnumber'),
+                'name' => self::value_required(PARAM_TEXT, 'Forum name'),
+                'type' => self::value_required(PARAM_RAW, 'Forum type'),
+                'stats' => self::multiple_structure(
+                    new external_single_structure(array(
+                        'group' => self::value_required(PARAM_TEXT, 'Group name'),
+                        'discussions' => self::value_required(PARAM_INT, 'Number of discussions'),
+                        'posts' => self::value_required(PARAM_INT, 'Number of posts'),
+                    ))
+                ),
+            ))
+        );
+    }
+
     /* Surveys */
 
     public static function get_surveys($course) {

@@ -1232,6 +1232,125 @@ class GetAssignmentSubmissionsTest extends OperationTest {
 
 }
 
+/* Forums */
+
+class GetForumStats extends OperationTest {
+
+    function test() {
+        $forums = array(
+            (object) array(
+                'id' => '201',
+                'idnumber' => 'F1',
+                'name' => 'Forum 1',
+                'type' => 'general',
+            ),
+            (object) array(
+                'id' => '202',
+                'idnumber' => 'F2',
+                'name' => 'Forum 2',
+                'type' => 'eachuser',
+            ),
+            (object) array(
+                'id' => '203',
+                'idnumber' => null,
+                'name' => 'Forum 3',
+                'type' => 'news',
+            ),
+        );
+        $stats1 = array(
+            (object) array('groupname' => 'group1', 'discussions' => '8', 'posts' => '45'),
+            (object) array('groupname' => 'group2', 'discussions' => '5', 'posts' => '32'),
+        );
+        $stats2 = array(
+            (object) array('groupname' => 'group1', 'discussions' => '11', 'posts' => '19'),
+            (object) array('groupname' => 'group2', 'discussions' => '17', 'posts' => '25'),
+        );
+        $stats3 = array(
+            (object) array('groupname' => null, 'discussions' => '5', 'posts' => '6'),
+            (object) array('groupname' => 'group1', 'discussions' => '3', 'posts' => '3'),
+            (object) array('groupname' => 'group2', 'discussions' => '2', 'posts' => '2'),
+        );
+
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_forums')->with(101)->andReturn($forums);
+        $this->moodle->shouldReceive('get_forum_stats')->with(201)->andReturn($stats1);
+        $this->moodle->shouldReceive('get_forum_stats')->with(202)->andReturn($stats2);
+        $this->moodle->shouldReceive('get_forum_stats')->with(203)->andReturn($stats3);
+
+        $result = $this->operations->get_forum_stats('course1');
+
+        $this->assertThat($result, $this->identicalTo(array(
+            array(
+                'idnumber' => 'F1',
+                'name' => 'Forum 1',
+                'type' => 'general',
+                'stats' => array(
+                   array('group' => 'group1', 'discussions' => 8, 'posts' => 45),
+                   array('group' => 'group2', 'discussions' => 5, 'posts' => 32),
+                ),
+            ),
+            array(
+                'idnumber' => 'F2',
+                'name' => 'Forum 2',
+                'type' => 'eachuser',
+                'stats' => array(
+                   array('group' => 'group1', 'discussions' => 11, 'posts' => 19),
+                   array('group' => 'group2', 'discussions' => 17, 'posts' => 25),
+                ),
+            ),
+            array(
+                'idnumber' => '',
+                'name' => 'Forum 3',
+                'type' => 'news',
+                'stats' => array(
+                   array('group' => '', 'discussions' => 5, 'posts' => 6),
+                   array('group' => 'group1', 'discussions' => 3, 'posts' => 3),
+                   array('group' => 'group2', 'discussions' => 2, 'posts' => 2),
+                ),
+            ),
+        )));
+    }
+
+    function test_no_forums() {
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_forums')->with(101)->andReturn(false);
+
+        $result = $this->operations->get_forum_stats('course1');
+
+        $this->assertThat($result, $this->identicalTo(array()));
+    }
+
+    function test_no_stats() {
+        $forums = array(
+            (object) array(
+                'id' => '201',
+                'idnumber' => 'F1',
+                'name' => 'Forum 1',
+                'type' => 'general',
+            ),
+        );
+
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_forums')->with(101)->andReturn($forums);
+        $this->moodle->shouldReceive('get_forum_stats')->with(201)->andReturn(false);
+
+        $result = $this->operations->get_forum_stats('course1');
+
+        $this->assertThat($result, $this->identicalTo(array(
+            array(
+                'idnumber' => 'F1',
+                'name' => 'Forum 1',
+                'type' => 'general',
+                'stats' => array(),
+            ),
+        )));
+    }
+
+    function test_unkown_course() {
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+        $result = $this->operations->get_forum_stats('course1');
+    }
+}
 
 /* Surveys */
 
