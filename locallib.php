@@ -295,6 +295,50 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
+    function get_mail_stats_received($userid, $starttime, $endtime) {
+        global $DB;
+        $sql = 'SELECT c.id, c.shortname AS course, COUNT(*) as messages'
+            . ' FROM {local_mail_index} i'
+            . ' JOIN {local_mail_message_users} mu ON mu.messageid = i.messageid'
+            . ' JOIN {local_mail_messages} m ON m.id = mu.messageid'
+            . ' JOIN {course} c ON c.id = m.courseid'
+            . ' WHERE i.userid = :userid1 AND i.type IN (:type1, :type2) AND i.item = 0'
+            . ' AND i.time >= :starttime AND i.time < :endtime'
+            . ' AND mu.userid = :userid2 AND mu.role != :role'
+            . ' GROUP BY c.id, c.shortname';
+        return $DB->get_records_sql($sql, array(
+            'userid1' => $userid,
+            'userid2' => $userid,
+            'starttime' => $starttime,
+            'endtime' => $endtime,
+            'type1' => 'inbox',
+            'type2' => 'trash',
+            'role' => 'from',
+        ));
+    }
+
+    function get_mail_stats_sent($userid, $starttime, $endtime) {
+        global $DB;
+        $sql = 'SELECT c.id, c.shortname AS course, COUNT(*) AS messages'
+            . ' FROM {local_mail_index} i'
+            . ' JOIN {local_mail_message_users} mu ON mu.messageid = i.messageid'
+            . ' JOIN {local_mail_messages} m ON m.id = mu.messageid'
+            . ' JOIN {course} c ON c.id = m.courseid'
+            . ' WHERE i.userid = :userid1 AND i.type IN (:type1, :type2) AND i.item = 0'
+            . ' AND i.time >= :starttime AND i.time < :endtime'
+            . ' AND mu.userid = :userid2 AND mu.role = :role'
+            . ' GROUP BY c.id, c.shortname';
+        return $DB->get_records_sql($sql, array(
+            'userid1' => $userid,
+            'userid2' => $userid,
+            'starttime' => $starttime,
+            'endtime' => $endtime,
+            'type1' => 'sent',
+            'type2' => 'trash',
+            'role' => 'from',
+        ));
+    }
+
     function get_role_assignments_by_course($courseid) {
          global $CFG, $DB;
 

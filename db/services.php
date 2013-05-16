@@ -261,7 +261,7 @@ $functions = array(
         'type'        => 'write',
     ),
 
-    /* Misc */
+    /* Mail */
 
     'secretaria_send_mail' => array(
         'classname'   => 'moodle_local_secretaria_external',
@@ -270,5 +270,14 @@ $functions = array(
         'description' => 'Send mail',
         'capabilities'=> 'local/secretaria:manage',
         'type'        => 'write',
+    ),
+
+    'secretaria_get_mail_stats' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'get_mail_stats',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Get mail stats',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
     ),
 );

@@ -625,7 +625,7 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
-    /* Misc */
+    /* Mail */
 
     function send_mail($message) {
         if (!$courseid = $this->moodle->get_course_id($message['course'])) {
@@ -666,6 +666,42 @@ class local_secretaria_operations {
         $this->moodle->send_mail($sender, $courseid, $message['subject'],
                                  $message['content'], $to, $cc, $bcc);
     }
+
+    function get_mail_stats($user, $starttime, $endtime) {
+        if (!$userid = $this->moodle->get_user_id($user)) {
+            throw new local_secretaria_exception('Unknown user');
+        }
+
+        $courses = array();
+        $received = array();
+        $sent = array();
+
+        if ($records = $this->moodle->get_mail_stats_received($userid, $starttime, $endtime)) {
+            foreach ($records as $id => $record) {
+                $courses[$id] = $record->course;
+                $received[$id] = (int) $record->messages;
+            }
+        }
+
+        if ($records = $this->moodle->get_mail_stats_sent($userid, $starttime, $endtime)) {
+            foreach ($records as $id => $record) {
+                $courses[$id] = $record->course;
+                $sent[$id] = (int) $record->messages;
+            }
+        }
+
+        $result = array();
+
+        foreach ($courses as $id => $course) {
+            $result[] = array(
+                'course' => $course,
+                'received' => isset($received[$id]) ? $received[$id] : 0,
+                'sent' => isset($sent[$id]) ? $sent[$id] : 0,
+            );
+        }
+
+        return $result;
+    }
 }
 
 interface local_secretaria_moodle {
@@ -690,6 +726,8 @@ interface local_secretaria_moodle {
     function get_grades($itemid, $userids);
     function get_group_id($courseid, $name);
     function get_group_members($groupid);
+    function get_mail_stats_sent($userid, $starttime, $endtime);
+    function get_mail_stats_received($userid, $starttime, $endtime);
     function get_role_assignments_by_course($courseid);
     function get_role_assignments_by_user($userid);
     function get_role_id($role);

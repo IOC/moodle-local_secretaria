@@ -650,7 +650,7 @@ class moodle_local_secretaria_external extends external_api {
         return null;
     }
 
-    /* Misc */
+    /* Mail */
 
     public static function send_mail($message) {
         return self::execute('send_mail', array('message' => $message));
@@ -679,4 +679,31 @@ class moodle_local_secretaria_external extends external_api {
     public static function send_mail_returns() {
         return null;
     }
+
+    public static function get_mail_stats($user, $starttime, $endtime) {
+        return self::execute('get_mail_stats', array(
+            'user' => $user,
+            'starttime' => $starttime,
+            'endtime' => $endtime,
+        ));
+    }
+
+    public static function get_mail_stats_parameters() {
+        return new external_function_parameters(array(
+           'user' => self::value_required(PARAM_USERNAME, 'User'),
+           'starttime' => self::value_required(PARAM_INT, 'Start timestamp'),
+           'endtime' => self::value_required(PARAM_INT, 'End timestamp'),
+        ));
+    }
+
+    public static function get_mail_stats_returns() {
+        return self::multiple_structure(
+            new external_single_structure(array(
+                'course' => self::value_required(PARAM_RAW, 'Course shortname'),
+                'received' => self::value_required(PARAM_INT, 'Number of messages received'),
+                'sent' => self::value_required(PARAM_INT, 'Number of messages sent'),
+            ))
+        );
+    }
+
 }

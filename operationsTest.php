@@ -1558,7 +1558,7 @@ class CreateSurveyTest extends OperationTest {
     }
 }
 
-/* Misc */
+/* Mail */
 
 class SendMailTest extends OperationTest {
 
@@ -1622,5 +1622,64 @@ class SendMailTest extends OperationTest {
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->send_mail($this->message);
+    }
+}
+
+class GetMailStatsTest extends OperationTest {
+
+    function test() {
+        $records_received = array(
+            (object) array(
+                'id' => '201',
+                'course' => 'course1',
+                'messages' => '17',
+            ),
+            (object) array(
+                'id' => '202',
+                'course' => 'course2',
+                'messages' => '23',
+            ),
+            (object) array(
+                'id' => '203',
+                'course' => 'course3',
+                'messages' => '15',
+            ),
+        );
+        $records_sent = array(
+            (object) array(
+                'id' => '201',
+                'course' => 'course1',
+                'messages' => '14',
+            ),
+            (object) array(
+                'id' => '202',
+                'course' => 'course2',
+                'messages' => '19',
+            ),
+            (object) array(
+                'id' => '203',
+                'course' => 'course3',
+                'messages' => '9',
+            ),
+        );
+        $this->having_user_id('user1', 201);
+        $this->moodle->shouldReceive('get_mail_stats_received')
+            ->with(201, 1e10, 2e10)->andReturn($records_received);
+        $this->moodle->shouldReceive('get_mail_stats_sent')
+            ->with(201, 1e10, 2e10)->andReturn($records_sent);
+
+        $result = $this->operations->get_mail_stats('user1', 1e10, 2e10);
+
+        $this->assertThat($result, $this->identicalTo(array(
+             array('course' => 'course1', 'received' => 17, 'sent' => 14),
+             array('course' => 'course2', 'received' => 23, 'sent' => 19),
+             array('course' => 'course3', 'received' => 15, 'sent' => 9),
+        )));
+    }
+
+    function test_unknown_user() {
+        $this->setExpectedException('local_secretaria_exception', 'Unknown user');
+
+        $this->operations->get_mail_stats('user1', 1e10, 2e10);
     }
 }
