@@ -49,6 +49,15 @@ $functions = array(
         'type'        => 'write',
     ),
 
+    'secretaria_get_users' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'get_users',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Get users',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
+    ),
+
     /* Courses */
 
     'secretaria_has_course' => array(

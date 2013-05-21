@@ -155,6 +155,20 @@ class moodle_local_secretaria_external extends external_api {
         return null;
     }
 
+    public static function get_users() {
+        return self::execute('get_users', array());
+    }
+
+    public static function get_users_parameters() {
+        return new external_function_parameters(array());
+    }
+
+    public static function get_users_returns() {
+        return self::multiple_structure(
+            self::value_required(PARAM_USERNAME, 'Username')
+        );
+    }
+
     /* Courses */
 
     public static function has_course($course) {

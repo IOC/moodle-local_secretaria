@@ -136,6 +136,16 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
+    function get_users() {
+        $result = array();
+        if ($records = $this->moodle->get_users()) {
+            foreach ($records as $record) {
+                $result[] = $record->username;
+            }
+        }
+        return $result;
+    }
+
     /* Courses */
 
     function has_course($shortname) {
@@ -736,6 +746,7 @@ interface local_secretaria_moodle {
     function get_user($username);
     function get_user_id($username);
     function get_user_lastaccess($userids);
+    function get_users();
     function groups_add_member($groupid, $userid);
     function groups_create_group($courseid, $name, $description);
     function groups_delete_group($groupid);

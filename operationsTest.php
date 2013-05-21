@@ -373,6 +373,34 @@ class DeleteUserTest extends OperationTest {
     }
 }
 
+class GetUsersTest extends OperationTest {
+
+    function test() {
+        $records = array(
+            (object) array('id' => 101, 'username' => 'user1'),
+            (object) array('id' => 102, 'username' => 'user2'),
+            (object) array('id' => 103, 'username' => 'user3'),
+        );
+        $this->moodle->shouldReceive('get_users')
+            ->with()->andReturn($records);
+
+        $result = $this->operations->get_users();
+
+        $this->assertThat($result, $this->identicalTo(
+            array('user1', 'user2', 'user3')
+        ));
+    }
+
+    function test_no_users() {
+        $this->moodle->shouldReceive('get_users')
+            ->with()->andReturn(false);
+
+        $result = $this->operations->get_users();
+
+        $this->assertThat($result, $this->identicalTo(array()));
+    }
+}
+
 /* Courses */
 
 class HasCourseTest extends OperationTest {
