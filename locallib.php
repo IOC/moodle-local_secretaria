@@ -512,6 +512,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
          $conditions = array('enrol' => 'manual', 'courseid' => $courseid);
          $enrol = $DB->get_record('enrol', $conditions, '*', MUST_EXIST);
          $plugin->enrol_user($enrol, $userid, $roleid);
+         grade_recover_history_grades($userid, $courseid);
      }
 
     function make_timestamp($year, $month, $day, $hour=0, $minute=0, $second=0) {
