@@ -438,8 +438,10 @@ class local_secretaria_operations {
 
         foreach ($items as $item) {
             $grades = array();
-            foreach ($this->moodle->get_grades($item['id'], $userids) as $userid => $grade) {
-                $grades[] = array('user' => $usernames[$userid], 'grade' => $grade);
+            if ($userids) {
+                foreach ($this->moodle->get_grades($item['id'], $userids) as $userid => $grade) {
+                    $grades[] = array('user' => $usernames[$userid], 'grade' => $grade);
+                }
             }
             $result[] = array(
                 'idnumber' => $item['idnumber'] ?: '',

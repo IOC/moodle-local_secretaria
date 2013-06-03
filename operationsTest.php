@@ -1008,8 +1008,12 @@ class GetUserGroupsTest extends OperationTest {
 
 class GetCourseGradesTest extends OperationTest {
 
-    function test() {
-        $items = array(
+    var $items;
+
+    function setUp() {
+        parent::setUp();
+
+        $this->items = array(
             array(
                 'id' => 401,
                 'idnumber' => 'gi1',
@@ -1044,10 +1048,13 @@ class GetCourseGradesTest extends OperationTest {
                 'gradepass' => '',
             ),
         );
+    }
+
+    function test() {
         $this->having_course_id('course1', 101);
         $this->having_user_id('user1', 301);
         $this->having_user_id('user2', 302);
-        $this->moodle->shouldReceive('get_grade_items')->with(101)->andReturn($items);
+        $this->moodle->shouldReceive('get_grade_items')->with(101)->andReturn($this->items);
         $this->moodle->shouldReceive('get_grades')->with(401, array(301, 302))
             ->andReturn(array(301 => '5.1',  302 => '5.2'));
         $this->moodle->shouldReceive('get_grades')->with(402, array(301, 302))
@@ -1096,6 +1103,46 @@ class GetCourseGradesTest extends OperationTest {
                     array('user' => 'user1', 'grade' => '5.1'),
                     array('user' => 'user2', 'grade' => '5.2'),
                 ),
+            ),
+        )));
+    }
+
+    function test_no_users() {
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_grade_items')->with(101)->andReturn($this->items);
+
+        $result = $this->operations->get_course_grades('course1', array());
+
+        $this->assertThat($result, $this->identicalTo(array(
+            array(
+                'idnumber' => 'gi2',
+                'type' => 'category',
+                'module' => null,
+                'name' => 'Category 1',
+                'grademin' => 'E',
+                'grademax' => 'A',
+                'gradepass' => 'C',
+                'grades' => array(),
+            ),
+            array(
+                'idnumber' => '',
+                'type' => 'module',
+                'module' => 'assignment',
+                'name' => 'Assignment 1',
+                'grademin' => '',
+                'grademax' => '',
+                'gradepass' => '',
+                'grades' => array(),
+            ),
+            array(
+                'idnumber' => 'gi1',
+                'type' => 'course',
+                'module' => null,
+                'name' => null,
+                'grademin' => '1',
+                'grademax' => '10',
+                'gradepass' => '5',
+                'grades' => array(),
             ),
         )));
     }
