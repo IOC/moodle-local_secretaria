@@ -478,7 +478,8 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         global $CFG, $DB;
         $select = 'mnethostid = ? AND deleted = ? AND username <> ?';
         $params = array($CFG->mnet_localhost_id, false, 'guest');
-        return $DB->get_records_select('user', $select, $params);
+        $fields = 'id, username';
+        return $DB->get_records_select('user', $select, $params, '', $fields);
     }
 
      function groups_add_member($groupid, $userid) {
