@@ -564,6 +564,38 @@ class local_secretaria_operations {
         return $result;
     }
 
+    function get_forum_user_stats($course, $users) {
+        if (!$courseid = $this->moodle->get_course_id($course)) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        $result = array();
+
+        if ($forums = $this->moodle->get_forums($courseid)) {
+            foreach ($forums as $forum) {
+                $stats = array();
+                if ($records = $this->moodle->get_forum_user_stats($forum->id, $users)) {
+                    foreach ($records as $record) {
+                        $stats[] = array(
+                            'username' => $record->username,
+                            'group' => $record->groupname?:'',
+                            'discussions' => $record->discussions,
+                            'posts' => $record->posts,
+                        );
+                    }
+                }
+                $result[] = array(
+                    'idnumber' => $forum->idnumber ?: '',
+                    'name' => $forum->name,
+                    'type' => $forum->type,
+                    'stats' => $stats,
+                );
+            }
+        }
+
+        return $result;
+    }
+
     /* Surveys */
 
     function get_surveys($course) {
@@ -733,6 +765,7 @@ interface local_secretaria_moodle {
     function get_courses();
     function get_course_grade($userid, $courseid);
     function get_forum_stats($forumid);
+    function get_forum_user_stats($forumid, $users);
     function get_forums($courseid);
     function get_grade_items($courseid);
     function get_grades($itemid, $userids);

@@ -250,6 +250,15 @@ $functions = array(
         'type'        => 'read',
     ),
 
+    'secretaria_get_forum_user_stats' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'get_forum_user_stats',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Get forum user stats',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
+    ),
+
     /* Surveys */
 
     'secretaria_get_surveys' => array(

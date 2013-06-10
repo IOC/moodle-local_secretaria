@@ -222,6 +222,29 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_sql($sql, array('forumid' => $forumid));
     }
 
+    function get_forum_user_stats($forumid, $users) {
+        global $DB;
+
+        $sqlin = '';
+        $usernameparams = array();
+
+        if (!empty($users)) {
+            list($sqlusernames, $usernameparams) = $DB->get_in_or_equal($users, SQL_PARAMS_NAMED, 'username');
+            $sqlin = ' AND u.username ' . $sqlusernames;
+        }
+
+        $sql = 'SELECT u.username, g.name AS groupname, count(DISTINCT di.id) as discussions, COUNT(p.id) AS posts'
+            . ' FROM {forum_posts} p'
+            . ' JOIN {user} u ON u.id = p.userid'
+            . ' JOIN {forum_discussions} d ON p.discussion = d.id'
+            . ' LEFT JOIN {groups} g ON g.id = d.groupid'
+            . ' LEFT JOIN {forum_discussions} di ON di.userid = u.id AND p.discussion = di.id'
+            . ' WHERE d.forum = :forumid'
+            . $sqlin
+            . ' group by u.username';
+        return $DB->get_records_sql($sql, array_merge(array('forumid' => $forumid), $usernameparams));
+    }
+
     function get_forums($courseid) {
         global $DB;
         $sql = 'SELECT f.id, cm.idnumber, f.name, f.type'
