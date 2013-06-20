@@ -155,7 +155,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
         $sql = 'SELECT s.id, us.username AS user, ug.username AS grader,'
             . ' s.timemodified AS timesubmitted, g.timemodified AS timegraded,'
-            . ' COUNT(f.id) AS numfiles'
+            . ' COUNT(f.id) AS numfiles, s.attemptnumber AS attempt'
             . ' FROM {assign_submission} s'
             . ' JOIN {user} us ON us.id = s.userid'
             . ' LEFT JOIN {assign_grades} g ON g.assignment = s.assignment AND g.userid = s.userid'

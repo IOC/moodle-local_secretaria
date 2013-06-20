@@ -575,6 +575,7 @@ class moodle_local_secretaria_external extends external_api {
                 'timesubmitted' => self::value_required(PARAM_INT, 'Time submitted'),
                 'timegraded' => self::value_null(PARAM_INT, 'Time graded'),
                 'numfiles' => self::value_required(PARAM_INT, 'Number of files'),
+                'attempt' => self::value_required(PARAM_INT, 'Number of attempt'),
             ))
         );
     }

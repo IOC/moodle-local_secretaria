@@ -524,6 +524,7 @@ class local_secretaria_operations {
                     'timesubmitted' => (int) $record->timesubmitted,
                     'timegraded' => (int) $record->timegraded ?: null,
                     'numfiles' => (int) $record->numfiles,
+                    'attempt' => (int) $record->attempt,
                 );
             }
         }
