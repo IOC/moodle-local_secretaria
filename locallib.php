@@ -160,7 +160,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
             . ' JOIN {user} us ON us.id = s.userid'
             . ' LEFT JOIN {assign_grades} g ON g.assignment = s.assignment AND g.userid = s.userid'
             . ' LEFT JOIN {user} ug ON ug.id = g.grader'
-            . ' LEFT JOIN {files} f ON f.userid = s.userid'
+            . ' LEFT JOIN {files} f ON f.itemid = s.id'
             . ' AND f.contextid = :contextid AND f.filename != :filename'
             . ' WHERE s.assignment = :assignmentid'
             . ' GROUP BY user, grader, timesubmitted, timegraded';
