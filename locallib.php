@@ -33,8 +33,8 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
     function create_survey($courseid, $section, $idnumber, $name, $summary,
                            $opendate, $closedate, $templateid) {
         global $CFG, $DB;
-        require_once($CFG->dirroot.'/mod/questionnaire/lib.php');
         require_once($CFG->dirroot.'/mod/questionnaire/locallib.php');
+        require_once($CFG->dirroot.'/mod/questionnaire/questionnaire.class.php');
 
         $course = $DB->get_record('course', array('id' => $courseid), '*', MUST_EXIST);
         $context = context_course::instance($courseid);
@@ -77,7 +77,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $cm->idnumber = $idnumber;
 
         $cm->coursemodule = add_course_module($cm);
-        $sectionid = add_mod_to_section($cm);
+        $sectionid = course_add_cm_to_section($cm->course, $cm->coursemodule, $cm->section);
         $DB->set_field('course_modules', 'section', $sectionid, array('id' => $cm->coursemodule));
         set_coursemodule_visible($cm->coursemodule, $cm->visible);
         rebuild_course_cache($course->id);
