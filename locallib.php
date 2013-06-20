@@ -526,7 +526,9 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
      }
 
      function groups_remove_member($groupid, $userid) {
-         groups_remove_member($groupid, $userid);
+         if (groups_remove_member_allowed($groupid, $userid)) {
+             groups_remove_member($groupid, $userid);
+         }
      }
 
      function insert_role_assignment($courseid, $userid, $roleid) {
