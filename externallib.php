@@ -661,6 +661,48 @@ class moodle_local_secretaria_external extends external_api {
         );
     }
 
+    public static function get_surveys_data($course) {
+        return self::execute('get_surveys_data', array('course' => $course));
+    }
+
+    public static function get_surveys_data_parameters() {
+        return new external_function_parameters(array(
+            'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+        ));
+    }
+
+    public static function get_surveys_data_returns() {
+        return self::multiple_structure(
+            new external_single_structure(array(
+                'idnumber' => self::value_required(PARAM_RAW, 'Survey idnumber'),
+                'name' => self::value_required(PARAM_TEXT, 'Survey name'),
+                'type' => self::value_required(PARAM_RAW, 'Survey type'),
+                'questions' => self::multiple_structure(
+                    new external_single_structure(array(
+                        'name' => self::value_required(PARAM_TEXT, 'Question name'),
+                        'content' => self::value_required(PARAM_RAW, 'Question content'),
+                        'position' => self::value_required(PARAM_INT, 'Question position'),
+                        'has_choices' => self::value_required(PARAM_TEXT, 'Has defined choices'),
+                        'choices' => self::multiple_structure(
+                                self::value_optional(PARAM_RAW, 'Choices')
+                        ),
+                        'responses' => self::multiple_structure(
+                            new external_single_structure(array(
+                                'username' => self::value_required(PARAM_TEXT, 'Username'),
+                                'content' => self::multiple_structure(
+                                        self::value_required(PARAM_RAW, 'Response content')
+                                ),
+                                'rank' => self::multiple_structure(
+                                        self::value_optional(PARAM_INT, 'Rank content')
+                                ),
+                            ))
+                        ),
+                    ))
+                ),
+            ))
+        );
+    }
+
     public static function create_survey($properties) {
         return self::execute('create_survey', array('properties' => $properties));
     }

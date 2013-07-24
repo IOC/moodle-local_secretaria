@@ -270,6 +270,15 @@ $functions = array(
         'type'        => 'read',
     ),
 
+    'secretaria_get_surveys_data' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'get_surveys_data',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Get surveys data',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'read',
+    ),
+
     'secretaria_create_survey' => array(
         'classname'   => 'moodle_local_secretaria_external',
         'methodname'  => 'create_survey',

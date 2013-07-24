@@ -233,7 +233,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
             $sqlin = ' AND u.username ' . $sqlusernames;
         }
 
-        $sql = 'SELECT u.username, g.name AS groupname, count(DISTINCT di.id) as discussions, COUNT(p.id) AS posts'
+        $sql = 'SELECT u.username, g.name AS groupname, count(DISTINCT di.id) AS discussions, COUNT(p.id) AS posts'
             . ' FROM {forum_posts} p'
             . ' JOIN {user} u ON u.id = p.userid'
             . ' JOIN {forum_discussions} d ON p.discussion = d.id'
@@ -241,7 +241,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
             . ' LEFT JOIN {forum_discussions} di ON di.userid = u.id AND p.discussion = di.id'
             . ' WHERE d.forum = :forumid'
             . $sqlin
-            . ' group by u.username';
+            . ' GROUP BY u.username';
         return $DB->get_records_sql($sql, array_merge(array('forumid' => $forumid), $usernameparams));
     }
 
@@ -463,7 +463,97 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-     function get_user($username) {
+    function get_survey_question_types() {
+        global $DB;
+
+        return $DB->get_records_menu('questionnaire_question_type', null, '', 'typeid, response_table');
+    }
+
+    function get_survey_questions($surveyid) {
+        global $DB;
+
+        $sql = 'SELECT q.id, q.name, q.content, q.type_id, q.position, qt.has_choices'
+            . ' FROM {questionnaire_question} q'
+            . ' JOIN {questionnaire_question_type} qt ON qt.id = q.type_id'
+            . ' WHERE q.survey_id = :surveyid';
+
+        return $DB->get_records_sql($sql, array(
+            'surveyid' => $surveyid
+        ));
+    }
+
+    function get_survey_responses_simple($questionids, $type) {
+        global $DB;
+
+        $content = '';
+        list($sqlquestionids, $questionidparams) = $DB->get_in_or_equal($questionids, SQL_PARAMS_NAMED, 'questionid');
+
+        if ($type == 'response_bool') {
+            $content = ', t.choice_id as content';
+        } elseif ($type == 'response_text' or $type == 'response_date') {
+            $content = ', t.response as content';
+        }
+
+        $sql = 'SELECT t.id, t.response_id as responseid, t.question_id as questionid, u.username' . $content
+            . ' FROM {questionnaire_' . $type. '} t'
+            . ' JOIN {questionnaire_response} r ON r.id = t.response_id'
+            . ' JOIN {user} u ON u.id = r.username'
+            . ' WHERE t.question_id ' . $sqlquestionids;
+
+        return $DB->get_records_sql($sql, $questionidparams);
+    }
+
+    function get_survey_responses_multiple($questionids, $type) {
+        global $DB;
+
+        list($sqlquestionids, $questionidparams) = $DB->get_in_or_equal($questionids, SQL_PARAMS_NAMED, 'questionid');
+
+        if ($type == 'response_rank') {
+            $field = ', t.rank';
+            $sqlro = '';
+            $paramc = array();
+        } elseif ($type == 'resp_single') {
+            $field = ' ';
+            $sqlro = '';
+            $paramc = array();
+        } else {
+            $field = ', ro.response AS other';
+            $sqlro = ' LEFT JOIN {questionnaire_response_other} ro ON ro.response_id = t.response_id AND c.content LIKE :content';
+            $paramc = array('content' => '!other%');
+        }
+
+        $params = array_merge($paramc, $questionidparams);
+
+        $sql = 'SELECT t.id, t.response_id as responseid, t.question_id as questionid, c.content, u.username' . $field
+            . ' FROM {questionnaire_' . $type . '} t'
+            . ' JOIN {questionnaire_quest_choice} c ON t.choice_id = c.id'
+            . ' JOIN {questionnaire_response} r ON r.id=t.response_id'
+            . ' JOIN {user} u ON u.id = r.username'
+            . $sqlro
+            . ' WHERE t.question_id ' . $sqlquestionids;
+
+        return $DB->get_records_sql($sql, $params);
+    }
+
+    function get_survey_question_choices($questionids, $type) {
+        global $DB;
+
+        list($sqlquestionids, $params) = $DB->get_in_or_equal($questionids, SQL_PARAMS_NAMED, 'questionid');
+
+        if ($type == 'response_rank') {
+            $sql = 'SELECT id as questionid, length as content'
+                . ' FROM {questionnaire_question}'
+                . ' WHERE id ' . $sqlquestionids;
+        } else {
+            $sql = 'SELECT question_id as questionid, content'
+                . ' FROM {questionnaire_quest_choice}'
+                . ' WHERE question_id ' . $sqlquestionids;
+        }
+
+        return $DB->get_records_sql($sql, $params);
+    }
+
+    function get_user($username) {
          global $CFG, $DB;
 
          $conditions = array(

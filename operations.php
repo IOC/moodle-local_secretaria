@@ -619,6 +619,105 @@ class local_secretaria_operations {
         return $result;
     }
 
+    function get_surveys_data($course) {
+        $result = array();
+
+        if (!$courseid = $this->moodle->get_course_id($course)) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        if ($surveys = $this->moodle->get_surveys($courseid)) {
+            $question_types = $this->moodle->get_survey_question_types();
+            foreach ($surveys as $survey) {
+                $stats = array();
+                if (!empty($survey->idnumber)) {
+                    $surveyid = $this->moodle->get_survey_id($courseid, $survey->idnumber);
+                    $questions = $this->moodle->get_survey_questions($surveyid);
+
+                    $groupquestions = array();
+                    foreach ($questions as $question) {
+                        if (!isset($groupquestions[$question->type_id])) {
+                            $groupquestions[$question->type_id] = array();
+                        }
+                        $groupquestions[$question->type_id][] = $question->id;
+                    }
+                    $responsestats = array();
+                    $questionchoices = array();
+                    foreach ($groupquestions as $type => $question) {
+                        switch ($question_types[$type]) {
+                            case 'response_bool':
+                            case 'response_text':
+                            case 'response_date':
+                                $responses = $this->moodle->get_survey_responses_simple($question, $question_types[$type]);
+                                $choices = array();
+                                break;
+                            default:
+                                $responses = $this->moodle->get_survey_responses_multiple($question, $question_types[$type]);
+                                $choices = $this->moodle->get_survey_question_choices($question, $question_types[$type]);
+                        }
+
+                        foreach ($responses as $response) {
+                            if (!isset($responsestats[$response->questionid])) {
+                                $responsestats[$response->questionid] = array();
+                            }
+                            if (isset($response->other) and strpos($response->content, '!other') !== false) {
+                                if (strpos($response->content, '!other=') !== false) {
+                                    $response->content = preg_replace('/^\!other\=/', '', $response->content);
+                                    $response->content .= ' ' . $response->other;
+                                } else {
+                                    $response->content = $response->other;
+                                }
+                            }
+                            if (!isset($responsestats[$response->questionid][$response->responseid])) {
+                                $responsestats[$response->questionid][$response->responseid] = array (
+                                    'username' => $response->username,
+                                    'content' => array($response->content),
+                                    'rank' => isset($response->rank)?array($response->rank):array(),
+                                );
+                            } else {
+                                $responsestats[$response->questionid][$response->responseid]['content'][] = $response->content;
+                                if (isset($response->rank)) {
+                                    $responsestats[$response->questionid][$response->responseid]['rank'][] = $response->rank;
+                                }
+                            }
+                        }
+                        if (!empty($choices)) {
+                            if ($question_types[$type] == 'response_rank') {
+                                foreach ($choices as $choice) {
+                                    $questionchoices[$choice->questionid] = range(1, $choice->content);
+                                }
+                            } else {
+                                foreach ($choices as $choice) {
+                                    if (!isset($questionchoices[$choice->questionid])) {
+                                        $questionchoices[$choice->questionid] = array();
+                                    }
+                                    $questionchoices[$choice->questionid][] = $choice->content;
+                                }
+                            }
+                        }
+                    }
+                    foreach ($questions as $key => $question) {
+                        $stats[] = array(
+                            'name' => $question->name,
+                            'content' => $question->content,
+                            'position' => $question->position,
+                            'has_choices' => $question->has_choices,
+                            'choices' => isset($questionchoices[$question->id])?$questionchoices[$question->id]:array(),
+                            'responses' => isset($responsestats[$question->id])?$responsestats[$question->id]:array(),
+                        );
+                    }
+                }
+                $result[] = array(
+                    'idnumber' => $survey->idnumber ?: '',
+                    'name' => $survey->name,
+                    'type' => $survey->realm,
+                    'questions' => $stats,
+                );
+            }
+        }
+        return $result;
+    }
+
     function create_survey($properties) {
         if (empty($properties['idnumber']) or
             empty($properties['name']) or
@@ -779,6 +878,11 @@ interface local_secretaria_moodle {
     function get_role_id($role);
     function get_survey_id($courseid, $idnumber);
     function get_surveys($courseid);
+    function get_survey_question_types();
+    function get_survey_questions($surveyid);
+    function get_survey_responses_simple($questionids, $type);
+    function get_survey_responses_multiple($questionids, $type);
+    function get_survey_question_choices($questionids, $type);
     function get_user($username);
     function get_user_id($username);
     function get_user_lastaccess($userids);

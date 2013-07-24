@@ -8,6 +8,8 @@ $loader->register();
 
 Mockery::getConfiguration()->allowMockingNonExistentMethods(false);
 
+date_default_timezone_set('Europe/Madrid');
+
 abstract class OperationTest extends PHPUnit_Framework_TestCase {
 
     protected $moodle;
@@ -1667,6 +1669,217 @@ class GetSurveysTest extends OperationTest {
         $this->setExpectedException('local_secretaria_exception', 'Unknown assignment');
 
         $this->operations->get_assignment_submissions('course1', 'A1');
+    }
+}
+
+class GetSurveysDataTest extends OperationTest {
+    function test() {
+
+        $records = array(
+            (object) array('id' => 201, 'name' => 'Survey 1',
+                           'idnumber' => 'S1', 'realm' => 'private'),
+        );
+
+        $questions = array(
+            (object) array('id' => '1001', 'name' => 'completat', 'content' => 'Has completat tot el curs?',
+                           'type_id' => '1' , 'position' => 1, 'has_choices' => 'n'),
+            (object) array('id' => '1002', 'name' => 'valora', 'content' => 'Valora els materials',
+                           'type_id' => '5', 'position' => 2, 'has_choices' => 'y'),
+            (object) array('id' => '1003', 'name' => 'millores', 'content' => 'Què milloraries del mòdul?',
+                           'type_id' => '3', 'position' => 3, 'has_choices' => 'n'),
+            (object) array('id' => '1004', 'name' => 'nota', 'content' => 'Valora entre 1 i 5 les activitats següents',
+                           'type_id' => '8', 'position' => 4, 'has_choices' => 'y'),
+        );
+
+        $responses_bool = array(
+            (object) array('responseid' => '2001', 'questionid' => '1001', 'username' => 'student1', 'content' => 'y'),
+            (object) array('responseid' => '2002', 'questionid' => '1001', 'username' => 'student2', 'content' => 'n'),
+            (object) array('responseid' => '2003', 'questionid' => '1001', 'username' => 'student3', 'content' => 'y'),
+        );
+
+        $responses_text = array(
+            (object) array('responseid' => '2007', 'questionid' => '1003', 'username' => 'student1', 'content' => 'Més implicació del professorat'),
+            (object) array('responseid' => '2008', 'questionid' => '1003', 'username' => 'student2', 'content' => 'No canviaria res'),
+            (object) array('responseid' => '2009', 'questionid' => '1003', 'username' => 'student3', 'content' => 'Millorar els materials'),
+        );
+
+        $responses_multiple = array(
+            (object) array('responseid' => '2004', 'questionid' => '1002', 'username' => 'student1', 'content' => 'Adequats'),
+            (object) array('responseid' => '2004', 'questionid' => '1002', 'username' => 'student1', 'content' => 'Didàctics'),
+            (object) array('responseid' => '2005', 'questionid' => '1002', 'username' => 'student2', 'content' => 'Didàctics'),
+            (object) array('responseid' => '2006', 'questionid' => '1002', 'username' => 'student3', 'content' => 'Poc Adequats'),
+        );
+
+        $choices_multiple = array(
+            (object) array('questionid' => '1002', 'content' => 'Molt adequats'),
+            (object) array('questionid' => '1002', 'content' => 'Adequats'),
+            (object) array('questionid' => '1002', 'content' => 'Didàctics'),
+            (object) array('questionid' => '1002', 'content' => 'Poc Adequats'),
+        );
+
+        $responses_multiple_rank = array(
+            (object) array('responseid' => '2010', 'questionid' => '1004', 'username' => 'student1', 'content' => 'Forums', 'rank' => 3),
+            (object) array('responseid' => '2010', 'questionid' => '1004', 'username' => 'student1', 'content' => 'Tasques', 'rank' => 4),
+            (object) array('responseid' => '2011', 'questionid' => '1004', 'username' => 'student2', 'content' => 'Forums', 'rank' => 1),
+            (object) array('responseid' => '2011', 'questionid' => '1004', 'username' => 'student2', 'content' => 'Tasques', 'rank' => 2),
+            (object) array('responseid' => '2012', 'questionid' => '1004', 'username' => 'student3', 'content' => 'Forums', 'rank' => 4),
+            (object) array('responseid' => '2012', 'questionid' => '1004', 'username' => 'student3', 'content' => 'Tasques', 'rank' => 4),
+        );
+
+        $choices_multiple_rank = array(
+            (object) array('questionid' => '1004', 'content' => '5'),
+        );
+
+        $questions_types = array(
+            '1' => 'response_bool',
+            '2' => 'response_text',
+            '3' => 'response_text',
+            '4' => 'resp_single',
+            '5' => 'resp_multiple',
+            '6' => 'resp_single',
+            '8' => 'response_rank',
+            '9' => 'response_date',
+            '10' => 'response_text',
+        );
+
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_surveys')->with(101)->andReturn($records);
+        $this->moodle->shouldReceive('get_survey_id')->with(101, 'S1')->andReturn(123);
+        $this->moodle->shouldReceive('get_survey_questions')->with(123)->andReturn($questions);
+        $this->moodle->shouldReceive('get_survey_question_types')->with()->andReturn($questions_types);
+
+        $idquestions = array();
+        foreach ($questions as $question) {
+            if (!isset($idquestions[$question->type_id])) {
+                $idquestions[$question->type_id] = array();
+            }
+            $idquestions[$question->type_id][] = $question->id;
+        }
+
+        $this->moodle->shouldReceive('get_survey_responses_simple')->with($idquestions[1], $questions_types[1])->andReturn($responses_bool);
+        $this->moodle->shouldReceive('get_survey_responses_simple')->with($idquestions[3], $questions_types[3])->andReturn($responses_text);
+        $this->moodle->shouldReceive('get_survey_responses_multiple')->with($idquestions[5], $questions_types[5])->andReturn($responses_multiple);
+        $this->moodle->shouldReceive('get_survey_question_choices')->with($idquestions[5], $questions_types[5])->andReturn($choices_multiple);
+        $this->moodle->shouldReceive('get_survey_responses_multiple')->with($idquestions[8], $questions_types[8])->andReturn($responses_multiple_rank);
+        $this->moodle->shouldReceive('get_survey_question_choices')->with($idquestions[8], $questions_types[8])->andReturn($choices_multiple_rank);
+
+        $result = $this->operations->get_surveys_data('course1');
+
+        $this->assertThat($result, $this->identicalTo(array(
+            array(
+                'idnumber' => 'S1',
+                'name' => 'Survey 1',
+                'type' => 'private',
+                'questions' => array(
+                    array(
+                        'name' => 'completat',
+                        'content' => 'Has completat tot el curs?',
+                        'position' => 1,
+                        'has_choices' => 'n',
+                        'choices' => array(),
+                        'responses' => array(
+                                            '2001' => array(
+                                                    'username' => 'student1',
+                                                    'content' => array('y'),
+                                                    'rank' => array()
+                                                ),
+                                            '2002' => array(
+                                                    'username' => 'student2',
+                                                    'content' => array('n'),
+                                                    'rank' => array()
+                                                ),
+                                            '2003' => array(
+                                                    'username' => 'student3',
+                                                    'content' => array('y'),
+                                                    'rank' => array()
+                                                ),
+                        )
+                    ),
+                    array(
+                        'name' => 'valora',
+                        'content' => 'Valora els materials',
+                        'position' => 2,
+                        'has_choices' => 'y',
+                        'choices' => array('Molt adequats', 'Adequats', 'Didàctics', 'Poc Adequats'),
+                        'responses' => array(
+                                            '2004' => array(
+                                                    'username' => 'student1',
+                                                    'content' => array('Adequats', 'Didàctics'),
+                                                    'rank' => array()
+                                                ),
+                                            '2005' => array(
+                                                    'username' => 'student2',
+                                                    'content' => array('Didàctics'),
+                                                    'rank' => array()
+                                                ),
+                                            '2006' => array(
+                                                    'username' => 'student3',
+                                                    'content' => array('Poc Adequats'),
+                                                    'rank' => array()
+                                                ),
+                        )
+                    ),
+                    array(
+                        'name' => 'millores',
+                        'content' => 'Què milloraries del mòdul?',
+                        'position' => 3,
+                        'has_choices' => 'n',
+                        'choices' => array(),
+                        'responses' => array(
+                                            '2007' => array(
+                                                    'username' => 'student1',
+                                                    'content' => array('Més implicació del professorat'),
+                                                    'rank' => array()
+                                                ),
+                                            '2008' => array(
+                                                    'username' => 'student2',
+                                                    'content' => array('No canviaria res'),
+                                                    'rank' => array()
+                                                ),
+                                            '2009' => array(
+                                                    'username' => 'student3',
+                                                    'content' => array('Millorar els materials'),
+                                                    'rank' => array()
+                                                ),
+                        )
+                    ),
+                    array(
+                        'name' => 'nota',
+                        'content' => 'Valora entre 1 i 5 les activitats següents',
+                        'position' => 4,
+                        'has_choices' => 'y',
+                        'choices' => array(1, 2, 3, 4, 5),
+                        'responses' => array(
+                                            '2010' => array(
+                                                    'username' => 'student1',
+                                                    'content' => array('Forums', 'Tasques'),
+                                                    'rank' => array(3, 4)
+                                                ),
+                                            '2011' => array(
+                                                    'username' => 'student2',
+                                                    'content' => array('Forums', 'Tasques'),
+                                                    'rank' => array(1, 2)
+                                                ),
+                                            '2012' => array(
+                                                    'username' => 'student3',
+                                                    'content' => array('Forums', 'Tasques'),
+                                                    'rank' => array(4, 4)
+                                                ),
+                        )
+                    ),
+                )
+            ),
+        )));
+    }
+
+    function test_blank_idnumber() {
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->operations->get_assignment_submissions('course1', '');
+    }
+
+    function test_unknown_course() {
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+        $this->operations->get_surveys('course1');
     }
 }
 
