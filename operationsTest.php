@@ -1681,13 +1681,13 @@ class GetSurveysDataTest extends OperationTest {
         );
 
         $questions = array(
-            (object) array('id' => '1001', 'name' => 'completat', 'content' => 'Has completat tot el curs?',
+            '1001' => (object) array('id' => '1001', 'name' => 'completat', 'content' => 'Has completat tot el curs?',
                            'type_id' => '1' , 'position' => 1, 'has_choices' => 'n'),
-            (object) array('id' => '1002', 'name' => 'valora', 'content' => 'Valora els materials',
+            '1002' => (object) array('id' => '1002', 'name' => 'valora', 'content' => 'Valora els materials',
                            'type_id' => '5', 'position' => 2, 'has_choices' => 'y'),
-            (object) array('id' => '1003', 'name' => 'millores', 'content' => 'Què milloraries del mòdul?',
+            '1003' => (object) array('id' => '1003', 'name' => 'millores', 'content' => 'Què milloraries del mòdul?',
                            'type_id' => '3', 'position' => 3, 'has_choices' => 'n'),
-            (object) array('id' => '1004', 'name' => 'nota', 'content' => 'Valora entre 1 i 5 les activitats següents',
+            '1004' => (object) array('id' => '1004', 'name' => 'nota', 'content' => 'Valora entre 1 i 5 les activitats següents',
                            'type_id' => '8', 'position' => 4, 'has_choices' => 'y'),
         );
 
@@ -1775,6 +1775,7 @@ class GetSurveysDataTest extends OperationTest {
                         'name' => 'completat',
                         'content' => 'Has completat tot el curs?',
                         'position' => 1,
+                        'type' => 'response_bool',
                         'has_choices' => 'n',
                         'choices' => array(),
                         'responses' => array(
@@ -1799,6 +1800,7 @@ class GetSurveysDataTest extends OperationTest {
                         'name' => 'valora',
                         'content' => 'Valora els materials',
                         'position' => 2,
+                        'type' => 'resp_multiple',
                         'has_choices' => 'y',
                         'choices' => array('Molt adequats', 'Adequats', 'Didàctics', 'Poc Adequats'),
                         'responses' => array(
@@ -1823,6 +1825,7 @@ class GetSurveysDataTest extends OperationTest {
                         'name' => 'millores',
                         'content' => 'Què milloraries del mòdul?',
                         'position' => 3,
+                        'type' => 'response_text',
                         'has_choices' => 'n',
                         'choices' => array(),
                         'responses' => array(
@@ -1847,6 +1850,7 @@ class GetSurveysDataTest extends OperationTest {
                         'name' => 'nota',
                         'content' => 'Valora entre 1 i 5 les activitats següents',
                         'position' => 4,
+                        'type' => 'response_rank',
                         'has_choices' => 'y',
                         'choices' => array(1, 2, 3, 4, 5),
                         'responses' => array(

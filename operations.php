@@ -640,6 +640,7 @@ class local_secretaria_operations {
                             $groupquestions[$question->type_id] = array();
                         }
                         $groupquestions[$question->type_id][] = $question->id;
+                        $questions[$question->id]->type = $question_types[$question->type_id];
                     }
                     $responsestats = array();
                     $questionchoices = array();
@@ -701,6 +702,7 @@ class local_secretaria_operations {
                             'name' => $question->name,
                             'content' => $question->content,
                             'position' => $question->position,
+                            'type' => $question->type,
                             'has_choices' => $question->has_choices,
                             'choices' => isset($questionchoices[$question->id])?$questionchoices[$question->id]:array(),
                             'responses' => isset($responsestats[$question->id])?$responsestats[$question->id]:array(),

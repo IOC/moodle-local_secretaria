@@ -545,7 +545,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
                 . ' FROM {questionnaire_question}'
                 . ' WHERE id ' . $sqlquestionids;
         } else {
-            $sql = 'SELECT question_id as questionid, content'
+            $sql = 'SELECT id, question_id as questionid, content'
                 . ' FROM {questionnaire_quest_choice}'
                 . ' WHERE question_id ' . $sqlquestionids;
         }

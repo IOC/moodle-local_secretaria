@@ -682,6 +682,7 @@ class moodle_local_secretaria_external extends external_api {
                         'name' => self::value_required(PARAM_TEXT, 'Question name'),
                         'content' => self::value_required(PARAM_RAW, 'Question content'),
                         'position' => self::value_required(PARAM_INT, 'Question position'),
+                        'type' => self::value_required(PARAM_TEXT, 'Question type'),
                         'has_choices' => self::value_required(PARAM_TEXT, 'Has defined choices'),
                         'choices' => self::multiple_structure(
                                 self::value_optional(PARAM_RAW, 'Choices')
