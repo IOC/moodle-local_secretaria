@@ -771,6 +771,37 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
+    public function update_survey($course, $idnumber, $properties) {
+        if (!$courseid = $this->moodle->get_course_id($course)) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        if (!$questionnaireid = $this->moodle->get_questionnaire_id($courseid, $idnumber)) {
+            throw new local_secretaria_exception('Unknown questionnaire');
+        }
+
+        if (isset($properties['idnumber'])) {
+            if (empty($properties['idnumber'])) {
+                throw new local_secretaria_exception('Invalid parameters');
+            }
+            if ($this->moodle->get_questionnaire_id($courseid, $properties['idnumber'])) {
+                throw new local_secretaria_exception('Duplicated idnumber');
+            }
+            $this->moodle->update_survey_idnumber($courseid, $idnumber, $properties['idnumber']);
+        }
+
+        if (isset($properties['name'])) {
+            if (empty($properties['name'])) {
+                throw new local_secretaria_exception('Invalid parameters');
+            }
+            $record = new stdClass;
+            $record->id = $questionnaireid;
+            $record->name = $properties['name'];
+
+            $this->moodle->update_survey($record);
+        }
+    }
+
     /* Mail */
 
     function send_mail($message) {
@@ -875,6 +906,7 @@ interface local_secretaria_moodle {
     function get_group_members($groupid);
     function get_mail_stats_sent($userid, $starttime, $endtime);
     function get_mail_stats_received($userid, $starttime, $endtime);
+    public function get_questionnaire_id($courseid, $idnumber);
     function get_role_assignments_by_course($courseid);
     function get_role_assignments_by_user($userid);
     function get_role_id($role);
@@ -903,6 +935,8 @@ interface local_secretaria_moodle {
     function start_transaction();
     function update_course($record);
     function update_password($userid, $password);
+    public function update_survey($record);
+    public function update_survey_idnumber($courseid, $oldidnumber, $newidnumber);
     function update_user($user);
     function user_picture_url($userid);
 }

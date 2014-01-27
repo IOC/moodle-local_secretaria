@@ -738,6 +738,29 @@ class moodle_local_secretaria_external extends external_api {
         return null;
     }
 
+    public static function update_survey($course, $idnumber, $properties) {
+        return self::execute('update_survey', array(
+            'course' => $course,
+            'idnumber' => $idnumber,
+            'properties' => $properties,
+        ));
+    }
+
+    public static function update_survey_parameters() {
+        return new external_function_parameters(array(
+            'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+            'idnumber' => self::value_required(PARAM_RAW, 'Survey idnumber'),
+            'properties' => new external_single_structure(array(
+                'idnumber' => self::value_optional(PARAM_RAW, 'Survey idnumber'),
+                'name' => self::value_optional(PARAM_TEXT, 'Survey name'),
+            )),
+        ));
+    }
+
+    public static function update_survey_returns() {
+        return null;
+    }
+
     /* Mail */
 
     public static function send_mail($message) {

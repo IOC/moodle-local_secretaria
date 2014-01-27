@@ -2045,6 +2045,77 @@ class CreateSurveyTest extends OperationTest {
     }
 }
 
+class UpdateSurveyTest extends OperationTest {
+
+    public function test() {
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_questionnaire_id')->with(101, 'S1')->andReturn(201);
+        $this->moodle->shouldReceive('get_questionnaire_id')->with(101, 'S2')->andReturn(false);
+
+        $this->moodle->shouldReceive('update_survey_idnumber')->with(101, 'S1', 'S2')->andReturn(false);
+
+        $record = (object) array(
+            'id' => 201,
+            'name' => 'Survey 2',
+        );
+
+        $this->moodle->shouldReceive('update_survey')->with(Mockery::mustBe($record));
+
+        $this->operations->update_survey('course1', 'S1', array(
+            'idnumber' => 'S2',
+            'name' => 'Survey 2',
+        ));
+    }
+
+    public function test_unknown_course() {
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+
+        $this->operations->update_survey('course22', 'S1', array());
+    }
+
+
+    public function test_unknown_questionnaire() {
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_questionnaire_id')->with(101, 'S5')->andReturn(false);
+        $this->setExpectedException('local_secretaria_exception', 'Unknown questionnaire');
+
+        $this->operations->update_survey('course1', 'S5', array());
+    }
+
+    public function test_empty_properties() {
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_questionnaire_id')->with(101, 'S1')->andReturn(201);
+
+        $this->operations->update_survey('course1', 'S1', array());
+    }
+
+    public function test_duplicate_idnumber() {
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_questionnaire_id')->with(101, 'S1')->andReturn(201);
+        $this->moodle->shouldReceive('get_questionnaire_id')->with(101, 'S2')->andReturn(202);
+        $this->setExpectedException('local_secretaria_exception', 'Duplicated idnumber');
+
+        $this->operations->update_survey(
+            'course1', 'S1', array('idnumber' => 'S2'));
+    }
+
+    public function test_blank_idnumber() {
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_questionnaire_id')->with(101, 'S1')->andReturn(201);
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+
+        $this->operations->update_survey('course1', 'S1', array('idnumber' => ''));
+    }
+
+    public function test_blank_name() {
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_questionnaire_id')->with(101, 'S1')->andReturn(201);
+        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+
+        $this->operations->update_survey('course1', 'S1', array('name' => ''));
+    }
+}
+
 /* Mail */
 
 class SendMailTest extends OperationTest {

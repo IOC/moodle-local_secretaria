@@ -288,6 +288,15 @@ $functions = array(
         'type'        => 'write',
     ),
 
+    'secretaria_update_survey' => array(
+        'classname'   => 'moodle_local_secretaria_external',
+        'methodname'  => 'update_survey',
+        'classpath'   => 'local/secretaria/externallib.php',
+        'description' => 'Update survey',
+        'capabilities'=> 'local/secretaria:manage',
+        'type'        => 'write',
+    ),
+
     /* Mail */
 
     'secretaria_send_mail' => array(

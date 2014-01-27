@@ -392,37 +392,55 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
          ));
      }
 
-     function get_role_assignments_by_user($userid) {
-         global $DB;
+    function get_role_assignments_by_user($userid) {
+        global $DB;
 
-         $sql = 'SELECT ra.id, c.shortname AS course, r.shortname AS role'
-             . ' FROM {context} ct, {course} c, {enrol} e, {role} r,'
-             . '      {role_assignments} ra, {user_enrolments} ue'
-             . ' WHERE ct.contextlevel = :contextlevel'
-             . ' AND ct.instanceid = c.id'
-             . ' AND e.courseid = c.id'
-             . ' AND e.enrol = :enrol'
-             . ' AND ra.component = :component'
-             . ' AND ra.contextid = ct.id'
-             . ' AND ra.itemid = :itemid'
-             . ' AND ra.roleid = r.id'
-             . ' AND ra.userid = :userid'
-             . ' AND ue.enrolid = e.id'
-             . ' AND ue.userid = ra.userid';
+        $sql = 'SELECT ra.id, c.shortname AS course, r.shortname AS role'
+            . ' FROM {context} ct, {course} c, {enrol} e, {role} r,'
+            . '      {role_assignments} ra, {user_enrolments} ue'
+            . ' WHERE ct.contextlevel = :contextlevel'
+            . ' AND ct.instanceid = c.id'
+            . ' AND e.courseid = c.id'
+            . ' AND e.enrol = :enrol'
+            . ' AND ra.component = :component'
+            . ' AND ra.contextid = ct.id'
+            . ' AND ra.itemid = :itemid'
+            . ' AND ra.roleid = r.id'
+            . ' AND ra.userid = :userid'
+            . ' AND ue.enrolid = e.id'
+            . ' AND ue.userid = ra.userid';
 
-         return $DB->get_records_sql($sql, array(
-             'component' => '',
-             'contextlevel' => CONTEXT_COURSE,
-             'enrol' => 'manual',
-             'itemid' => 0,
-             'userid' => $userid,
-         ));
+        return $DB->get_records_sql($sql, array(
+            'component' => '',
+            'contextlevel' => CONTEXT_COURSE,
+            'enrol' => 'manual',
+            'itemid' => 0,
+            'userid' => $userid,
+        ));
      }
 
-     function get_role_id($role) {
-         global $DB;
-         return $DB->get_field('role', 'id', array('shortname' => $role));
-     }
+    function get_role_id($role) {
+        global $DB;
+        return $DB->get_field('role', 'id', array('shortname' => $role));
+    }
+
+    function get_questionnaire_id($courseid, $idnumber) {
+        global $DB;
+
+        $sql = 'SELECT q.id'
+            . ' FROM {modules} m'
+            . ' JOIN {course_modules} cm ON cm.module = m.id'
+            . ' JOIN {questionnaire} q ON q.id = cm.instance'
+            . ' WHERE m.name = :module'
+            . ' AND cm.course = :courseid'
+            . ' AND cm.idnumber = :idnumber';
+
+        return $DB->get_field_sql($sql, array(
+            'module' => 'questionnaire',
+            'courseid' => $courseid,
+            'idnumber' => $idnumber,
+        ));
+    }
 
     function get_survey_id($courseid, $idnumber) {
         global $DB;
@@ -721,6 +739,19 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         global $DB;
         $record = $DB->get_record('user', array('id' => $userid));
         update_internal_user_password($record, $password);
+    }
+
+    public function update_survey($record) {
+        global $DB;
+        $DB->update_record('questionnaire', $record);
+    }
+
+    public function update_survey_idnumber($courseid, $oldidnumber, $newidnumber) {
+        global $DB;
+        $conditions = array('course' => $courseid, 'idnumber' => $oldidnumber);
+        $record = $DB->get_record('course_modules', $conditions, '*', MUST_EXIST);
+        $record->idnumber = $newidnumber;
+        $DB->update_record('course_modules', $record);
     }
 
     function update_user($record) {
