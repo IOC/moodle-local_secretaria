@@ -1,7 +1,7 @@
 <?php
 
-require_once 'operations.php';
-require_once 'Mockery/Loader.php';
+require_once('operations.php');
+require_once('Mockery/Loader.php');
 
 $loader = new Mockery\Loader;
 $loader->register();
@@ -15,7 +15,7 @@ abstract class OperationTest extends PHPUnit_Framework_TestCase {
     protected $moodle;
     protected $operations;
 
-    function setUp() {
+    public function setUp() {
         $this->moodle = Mockery::mock('local_secretaria_moodle');
         $this->moodle->shouldReceive('get_course_id')->andReturn(false)->byDefault();
         $this->moodle->shouldReceive('get_group_id')->andReturn(false)->byDefault();
@@ -25,33 +25,28 @@ abstract class OperationTest extends PHPUnit_Framework_TestCase {
         $this->operations = new local_secretaria_operations($this->moodle);
     }
 
-    function tearDown() {
+    public function tearDown() {
         Mockery::close();
     }
 
     protected function having_course_id($shortname, $courseid) {
-        $this->moodle->shouldReceive('get_course_id')
-            ->with($shortname)->andReturn($courseid);
+        $this->moodle->shouldReceive('get_course_id')->with($shortname)->andReturn($courseid);
     }
 
     protected function having_group_id($courseid, $groupname, $groupid) {
-        $this->moodle->shouldReceive('get_group_id')
-            ->with($courseid, $groupname)->andReturn($groupid);
+        $this->moodle->shouldReceive('get_group_id')->with($courseid, $groupname)->andReturn($groupid);
     }
 
     protected function having_role_id($shortname, $roleid) {
-        $this->moodle->shouldReceive('get_role_id')
-            ->with($shortname)->andReturn($roleid);
+        $this->moodle->shouldReceive('get_role_id')->with($shortname)->andReturn($roleid);
     }
 
     protected function having_user_id($username, $userid) {
-        $this->moodle->shouldReceive('get_user_id')
-            ->with($username)->andReturn($userid);
+        $this->moodle->shouldReceive('get_user_id')->with($username)->andReturn($userid);
     }
 
     protected function having_user($username, $record) {
-        $this->moodle->shouldReceive('get_user')
-            ->with($username)->andReturn((object) $record);
+        $this->moodle->shouldReceive('get_user')->with($username)->andReturn((object) $record);
     }
 }
 
@@ -59,7 +54,7 @@ abstract class OperationTest extends PHPUnit_Framework_TestCase {
 
 class GetUserTest extends OperationTest {
 
-    function setUp() {
+    public function setUp() {
         parent::setUp();
         $this->record = (object) array(
             'id' => 201,
@@ -72,10 +67,9 @@ class GetUserTest extends OperationTest {
         );
     }
 
-    function test() {
+    public function test() {
         $this->having_user('user', $this->record);
-        $this->moodle->shouldReceive('user_picture_url')->with(201)
-            ->andReturn('http://example.org/user/pix.php/201/f1.jpg');
+        $this->moodle->shouldReceive('user_picture_url')->with(201)->andReturn('http://example.org/user/pix.php/201/f1.jpg');
 
         $result = $this->operations->get_user('user');
 
@@ -89,18 +83,17 @@ class GetUserTest extends OperationTest {
         )));
     }
 
-    function test_no_picture() {
+    public function test_no_picture() {
         $this->record->picture = 0;
         $this->having_user('user', $this->record);
-        $this->moodle->shouldReceive('user_picture_url')->with(201)
-            ->andReturn('http://example.org/user/pix.php/201/f1.jpg');
+        $this->moodle->shouldReceive('user_picture_url')->with(201)->andReturn('http://example.org/user/pix.php/201/f1.jpg');
 
         $result = $this->operations->get_user('user');
 
         $this->assertThat($result['picture'], $this->isNull());
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->get_user('user');
     }
@@ -108,7 +101,7 @@ class GetUserTest extends OperationTest {
 
 class GetUserLastAccessTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->having_user_id('user1', 201);
         $this->having_user_id('user2', 202);
         $this->having_user_id('user3', 203);
@@ -117,8 +110,7 @@ class GetUserLastAccessTest extends OperationTest {
             (object) array('id' => 302, 'userid' => 201, 'course' => 'CP2', 'time' => 1234567892),
             (object) array('id' => 303, 'userid' => 202, 'course' => 'CP1', 'time' => 1234567893),
         );
-        $this->moodle->shouldReceive('get_user_lastaccess')
-            ->with(array(201, 202, 203))->andReturn($records);
+        $this->moodle->shouldReceive('get_user_lastaccess')->with(array(201, 202, 203))->andReturn($records);
 
         $result = $this->operations->get_user_lastaccess(array('user1', 'user2', 'user3'));
 
@@ -129,7 +121,7 @@ class GetUserLastAccessTest extends OperationTest {
         )));
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->get_user_lastaccess(array('user1'));
     }
@@ -137,7 +129,7 @@ class GetUserLastAccessTest extends OperationTest {
 
 class CreateUserTest extends OperationTest {
 
-    function setUp() {
+    public function setUp() {
         parent::setUp();
         $this->properties = array(
             'username' => 'user1',
@@ -148,82 +140,70 @@ class CreateUserTest extends OperationTest {
         );
     }
 
-    function test() {
+    public function test() {
         $this->moodle->shouldReceive('auth_plugin')->with()->andReturn('manual');
-        $this->moodle->shouldReceive('prevent_local_passwords')
-            ->with('manual')->andReturn(false);
-        $this->moodle->shouldReceive('check_password')
-            ->with('abc123')->andReturn(true);
+        $this->moodle->shouldReceive('prevent_local_passwords')->with('manual')->andReturn(false);
+        $this->moodle->shouldReceive('check_password')->with('abc123')->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('create_user')
-            ->with('manual', 'user1', 'abc123', 'First', 'Last', 'user1@example.org')
-            ->once()->ordered();
+        $this->moodle->shouldReceive('create_user')->with('manual', 'user1', 'abc123', 'First', 'Last', 'user1@example.org')->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->create_user($this->properties);
     }
 
-    function test_prevent_local_passwords() {
+    public function test_prevent_local_passwords() {
         $this->moodle->shouldReceive('auth_plugin')->andReturn('msso');
-        $this->moodle->shouldReceive('prevent_local_passwords')
-            ->with('msso')->andReturn(true);
+        $this->moodle->shouldReceive('prevent_local_passwords')->with('msso')->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('create_user')
-            ->with('msso', 'user1', false, 'First', 'Last', 'user1@example.org')
-            ->once()->ordered();
+        $this->moodle->shouldReceive('create_user')->with('msso', 'user1', false, 'First', 'Last', 'user1@example.org')->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->create_user($this->properties);
     }
 
-    function test_no_email() {
+    public function test_no_email() {
         unset($this->properties['email']);
         $this->moodle->shouldReceive('auth_plugin')->with()->andReturn('manual');
-        $this->moodle->shouldReceive('prevent_local_passwords')
-            ->with('manual')->andReturn(true);
+        $this->moodle->shouldReceive('prevent_local_passwords')->with('manual')->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('create_user')
-            ->with('manual', 'user1', false, 'First', 'Last', '')
-            ->once()->ordered();
+        $this->moodle->shouldReceive('create_user')->with('manual', 'user1', false, 'First', 'Last', '')->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->create_user($this->properties);
     }
 
-    function test_blank_username() {
+    public function test_blank_username() {
         $this->properties['username'] = '';
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->create_user($this->properties);
     }
 
-    function test_blank_firstname() {
+    public function test_blank_firstname() {
         $this->properties['firstname'] = '';
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->create_user($this->properties);
     }
 
-    function test_blank_lastname() {
+    public function test_blank_lastname() {
         $this->properties['lastname'] = '';
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->create_user($this->properties);
     }
 
-    function test_duplicate_username() {
+    public function test_duplicate_username() {
         $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Duplicate username');
 
         $this->operations->create_user($this->properties);
     }
 
-    function test_invalid_password() {
+    public function test_invalid_password() {
         $this->moodle->shouldReceive('auth_plugin')->andReturn('manual');
-        $this->moodle->shouldReceive('prevent_local_passwords')
-            ->with('manual')->andReturn(false);
-        $this->moodle->shouldReceive('check_password')
-            ->with('abc123')->andReturn(false);
+        $this->moodle->shouldReceive('prevent_local_passwords')->with('manual')->andReturn(false);
+        $this->moodle->shouldReceive('check_password')->with('abc123')->andReturn(false);
         $this->setExpectedException('local_secretaria_exception', 'Invalid password');
 
         $this->operations->create_user($this->properties);
@@ -232,7 +212,7 @@ class CreateUserTest extends OperationTest {
 
 class UpdateUserTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $record = (object) array(
             'id' => 201,
             'username' => 'user2',
@@ -242,15 +222,11 @@ class UpdateUserTest extends OperationTest {
         );
         $this->having_user('user1', array('id' => 201, 'auth' => 'manual'));
         $this->having_user_id('user2', false);
-        $this->moodle->shouldReceive('prevent_local_passwords')
-            ->with('manual')->andReturn(false);
-        $this->moodle->shouldReceive('check_password')
-            ->with('abc123')->andReturn(true);
+        $this->moodle->shouldReceive('prevent_local_passwords')->with('manual')->andReturn(false);
+        $this->moodle->shouldReceive('check_password')->with('abc123')->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('update_user')
-            ->with(Mockery::mustBe($record))->once()->ordered();
-        $this->moodle->shouldReceive('update_password')
-            ->with(201, 'abc123')->once()->ordered();
+        $this->moodle->shouldReceive('update_user')->with(Mockery::mustBe($record))->once()->ordered();
+        $this->moodle->shouldReceive('update_password')->with(201, 'abc123')->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->update_user('user1', array(
@@ -262,13 +238,13 @@ class UpdateUserTest extends OperationTest {
         ));
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
 
         $this->operations->update_user('user1', array('username' => 'user1'));
     }
 
-    function test_blank_username() {
+    public function test_blank_username() {
         $this->having_user('user1', array('id' => 201));
         $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
@@ -276,7 +252,7 @@ class UpdateUserTest extends OperationTest {
         $this->operations->update_user('user1', array('username' => ''));
     }
 
-    function test_duplicate_username() {
+    public function test_duplicate_username() {
         $this->having_user('user1', array('id' => 201));
         $this->having_user_id('user2', 202);
         $this->setExpectedException('local_secretaria_exception', 'Duplicate username');
@@ -284,73 +260,65 @@ class UpdateUserTest extends OperationTest {
         $this->operations->update_user('user1', array('username' => 'user2'));
     }
 
-    function test_same_username() {
+    public function test_same_username() {
         $record = (object) array('id' => 201, 'username' => 'USER1');
         $this->having_user('user1', array('id' => 201));
         $this->having_user_id('USER1', 201);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('update_user')
-            ->with(Mockery::mustBe($record))->once()->ordered();
+        $this->moodle->shouldReceive('update_user')->with(Mockery::mustBe($record))->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->update_user('user1', array('username' => 'USER1'));
     }
 
-    function test_password_only() {
+    public function test_password_only() {
         $this->having_user('user1', array('id' => 201, 'auth' => 'manual'));
-        $this->moodle->shouldReceive('prevent_local_passwords')
-            ->with('manual')->andReturn(false);
-        $this->moodle->shouldReceive('check_password')
-            ->with('abc123')->andReturn(true);
+        $this->moodle->shouldReceive('prevent_local_passwords')->with('manual')->andReturn(false);
+        $this->moodle->shouldReceive('check_password')->with('abc123')->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('update_password')
-            ->with(201, 'abc123')->once()->ordered();
+        $this->moodle->shouldReceive('update_password')->with(201, 'abc123')->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->update_user('user1', array('password' => 'abc123'));
     }
 
-    function test_invalid_password() {
+    public function test_invalid_password() {
         $this->having_user('user1', array('id' => 201, 'auth' => 'manual'));
-        $this->moodle->shouldReceive('prevent_local_passwords')
-            ->with('manual')->andReturn(false);
-        $this->moodle->shouldReceive('check_password')
-            ->with('abc123')->andReturn(false);
+        $this->moodle->shouldReceive('prevent_local_passwords')->with('manual')->andReturn(false);
+        $this->moodle->shouldReceive('check_password')->with('abc123')->andReturn(false);
         $this->setExpectedException('local_secretaria_exception', 'Invalid password');
 
         $this->operations->update_user('user1', array('password' => 'abc123'));
     }
 
-    function test_prevent_local_passwords() {
+    public function test_prevent_local_passwords() {
         $this->having_user('user1', array('id' => 201, 'auth' => 'msso'));
-        $this->moodle->shouldReceive('prevent_local_passwords')
-            ->with('msso')->andReturn(true);
+        $this->moodle->shouldReceive('prevent_local_passwords')->with('msso')->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->update_user('user1', array('password' => 'abc123'));
     }
 
-    function test_blank_firstname() {
+    public function test_blank_firstname() {
         $this->having_user('user1', array('id' => 201));
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->update_user('user1', array('firstname' => ''));
     }
 
-    function test_blank_lastname() {
+    public function test_blank_lastname() {
         $this->having_user('user1', array('id' => 201));
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->update_user('user1', array('lastname' => ''));
     }
 
-    function test_blank_email() {
+    public function test_blank_email() {
         $record = (object) array('id' => 201, 'email' => '');
         $this->having_user('user1', array('id' => 201));
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('update_user')
-            ->with(Mockery::mustBe($record))->once()->ordered();
+        $this->moodle->shouldReceive('update_user')->with(Mockery::mustBe($record))->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->update_user('user1', array('email' => ''));
@@ -359,7 +327,7 @@ class UpdateUserTest extends OperationTest {
 
 class DeleteUserTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->having_user_id('user1', 101);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('delete_user')->with(101)->once()->ordered();
@@ -368,7 +336,7 @@ class DeleteUserTest extends OperationTest {
         $this->operations->delete_user('user1');
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
 
         $this->operations->delete_user('user1');
@@ -377,14 +345,13 @@ class DeleteUserTest extends OperationTest {
 
 class GetUsersTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $records = array(
             (object) array('id' => 101, 'username' => 'user1'),
             (object) array('id' => 102, 'username' => 'user2'),
             (object) array('id' => 103, 'username' => 'user3'),
         );
-        $this->moodle->shouldReceive('get_users')
-            ->with()->andReturn($records);
+        $this->moodle->shouldReceive('get_users')->with()->andReturn($records);
 
         $result = $this->operations->get_users();
 
@@ -393,9 +360,8 @@ class GetUsersTest extends OperationTest {
         ));
     }
 
-    function test_no_users() {
-        $this->moodle->shouldReceive('get_users')
-            ->with()->andReturn(false);
+    public function test_no_users() {
+        $this->moodle->shouldReceive('get_users')->with()->andReturn(false);
 
         $result = $this->operations->get_users();
 
@@ -407,13 +373,13 @@ class GetUsersTest extends OperationTest {
 
 class HasCourseTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->having_course_id('course1', 101);
         $result = $this->operations->has_course('course1');
         $this->assertThat($result, $this->isTrue());
     }
 
-    function test_no_course() {
+    public function test_no_course() {
         $result = $this->operations->has_course('course1');
         $this->assertThat($result, $this->isFalse());
     }
@@ -421,7 +387,7 @@ class HasCourseTest extends OperationTest {
 
 class GetCourseTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $record = (object) array(
             'id' => '101',
             'shortname' => 'course1',
@@ -429,8 +395,7 @@ class GetCourseTest extends OperationTest {
             'visible' => '1',
             'startdate' => (string) mktime(0, 0, 0, 9, 17, 2012),
         );
-        $this->moodle->shouldReceive('get_course')
-            ->with('course1')->andReturn($record);
+        $this->moodle->shouldReceive('get_course')->with('course1')->andReturn($record);
 
         $result = $this->operations->get_course('course1');
 
@@ -442,9 +407,8 @@ class GetCourseTest extends OperationTest {
         )));
     }
 
-    function test_unknown_course() {
-        $this->moodle->shouldReceive('get_course')
-            ->with('course1')->andReturn(false);
+    public function test_unknown_course() {
+        $this->moodle->shouldReceive('get_course')->with('course1')->andReturn(false);
 
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
 
@@ -454,7 +418,7 @@ class GetCourseTest extends OperationTest {
 
 class UpdateCourseTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->having_course_id('course1', 101);
         $this->having_course_id('course2', false);
         $record = (object) array(
@@ -465,8 +429,7 @@ class UpdateCourseTest extends OperationTest {
             'startdate' => mktime(0, 0, 0, 9, 17, 2012),
         );
 
-        $this->moodle->shouldReceive('update_course')
-            ->with(Mockery::mustBe($record));
+        $this->moodle->shouldReceive('update_course')->with(Mockery::mustBe($record));
 
         $this->operations->update_course('course1', array(
             'shortname' => 'course2',
@@ -476,21 +439,20 @@ class UpdateCourseTest extends OperationTest {
         ));
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
 
         $this->operations->update_course('course1', array());
     }
 
-    function test_empty_properties() {
+    public function test_empty_properties() {
         $this->having_course_id('course1', 101);
-        $this->moodle->shouldReceive('update_course')
-            ->with(Mockery::mustBe((object) array('id' => 101)));
+        $this->moodle->shouldReceive('update_course')->with(Mockery::mustBe((object) array('id' => 101)));
 
         $this->operations->update_course('course1', array());
     }
 
-    function test_duplicate_shortname() {
+    public function test_duplicate_shortname() {
         $this->having_course_id('course1', 101);
         $this->having_course_id('course2', 102);
         $this->setExpectedException('local_secretaria_exception', 'Duplicate shortname');
@@ -499,28 +461,27 @@ class UpdateCourseTest extends OperationTest {
             'course1', array('shortname' => 'course2'));
     }
 
-    function test_equal_shortname() {
+    public function test_equal_shortname() {
         $this->having_course_id('course1', 101);
         $this->having_course_id('COURSE1', 101);
         $record = (object) array(
             'id' => 101,
             'shortname' => 'COURSE1'
         );
-        $this->moodle->shouldReceive('update_course')
-            ->with(Mockery::mustBe($record));
+        $this->moodle->shouldReceive('update_course')->with(Mockery::mustBe($record));
 
         $this->operations->update_course(
             'course1', array('shortname' => 'COURSE1'));
     }
 
-    function test_blank_shortname() {
+    public function test_blank_shortname() {
         $this->having_course_id('course1', 101);
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->update_course('course1', array('shortname' => ''));
     }
 
-    function test_blank_fullname() {
+    public function test_blank_fullname() {
         $this->having_course_id('course1', 101);
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
@@ -530,14 +491,13 @@ class UpdateCourseTest extends OperationTest {
 
 class GetCoursesTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $records = array(
             (object) array('id' => 101, 'shortname' => 'course1'),
             (object) array('id' => 102, 'shortname' => 'course2'),
             (object) array('id' => 103, 'shortname' => 'course3'),
         );
-        $this->moodle->shouldReceive('get_courses')
-            ->with()->andReturn($records);
+        $this->moodle->shouldReceive('get_courses')->with()->andReturn($records);
 
         $result = $this->operations->get_courses();
 
@@ -546,9 +506,8 @@ class GetCoursesTest extends OperationTest {
         ));
     }
 
-    function test_no_courses() {
-        $this->moodle->shouldReceive('get_courses')
-            ->with()->andReturn(false);
+    public function test_no_courses() {
+        $this->moodle->shouldReceive('get_courses')->with()->andReturn(false);
 
         $result = $this->operations->get_courses();
 
@@ -560,15 +519,14 @@ class GetCoursesTest extends OperationTest {
 
 class GetCcourseEnrolmentsTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $records = array(
             (object) array('id' => 301, 'user' => 'user1', 'role' => 'role1'),
             (object) array('id' => 302, 'user' => 'user2', 'role' => 'role2'),
         );
 
         $this->having_course_id('course1', 101);
-        $this->moodle->shouldReceive('get_role_assignments_by_course')
-            ->with(101)->andReturn($records);
+        $this->moodle->shouldReceive('get_role_assignments_by_course')->with(101)->andReturn($records);
 
         $result = $this->operations->get_course_enrolments('course1');
 
@@ -578,17 +536,16 @@ class GetCcourseEnrolmentsTest extends OperationTest {
         )));
     }
 
-    function test_no_enrolments() {
+    public function test_no_enrolments() {
         $this->having_course_id('course1', 101);
-        $this->moodle->shouldReceive('get_role_assignments_by_course')
-            ->with(101)->andReturn(array());
+        $this->moodle->shouldReceive('get_role_assignments_by_course')->with(101)->andReturn(array());
 
         $result = $this->operations->get_course_enrolments('course1');
 
         $this->assertThat($result, $this->identicalTo(array()));
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_course_enrolments('course1');
     }
@@ -596,14 +553,13 @@ class GetCcourseEnrolmentsTest extends OperationTest {
 
 class GetUserEnrolmentsTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $records = array(
             (object) array('id' => 301, 'course' => 'course1', 'role' => 'role1'),
             (object) array('id' => 302, 'course' => 'course2', 'role' => 'role2'),
         );
         $this->having_user_id('user1', 201);
-        $this->moodle->shouldReceive('get_role_assignments_by_user')
-            ->with(201)->andReturn($records);
+        $this->moodle->shouldReceive('get_role_assignments_by_user')->with(201)->andReturn($records);
 
         $result = $this->operations->get_user_enrolments('user1');
 
@@ -613,17 +569,16 @@ class GetUserEnrolmentsTest extends OperationTest {
         )));
     }
 
-    function test_no_enrolments() {
+    public function test_no_enrolments() {
         $this->having_user_id('user1', 201);
-        $this->moodle->shouldReceive('get_role_assignments_by_user')
-            ->with(201)->andReturn(array());
+        $this->moodle->shouldReceive('get_role_assignments_by_user')->with(201)->andReturn(array());
 
         $result = $this->operations->get_user_enrolments('user1');
 
         $this->assertThat($result, $this->identicalTo(array()));
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->get_user_enrolments('user1');
     }
@@ -631,16 +586,14 @@ class GetUserEnrolmentsTest extends OperationTest {
 
 class EnrolUsersTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         for ($i = 1; $i <= 3; $i++) {
             $this->having_course_id('course' . $i, 200 + $i);
             $this->having_user_id('user' . $i, 300 + $i);
             $this->having_role_id('role' . $i, 400 + $i);
-            $this->moodle->shouldReceive('role_assignment_exists')
-                ->with(200 + $i, 300 + $i, 400 + $i)->andReturn(false);
-            $this->moodle->shouldReceive('insert_role_assignment')
-                ->with(200 + $i, 300 + $i, 400 + $i)->once()->ordered();
+            $this->moodle->shouldReceive('role_assignment_exists')->with(200 + $i, 300 + $i, 400 + $i)->andReturn(false);
+            $this->moodle->shouldReceive('insert_role_assignment')->with(200 + $i, 300 + $i, 400 + $i)->once()->ordered();
         }
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
@@ -651,12 +604,11 @@ class EnrolUsersTest extends OperationTest {
         ));
     }
 
-    function test_duplicate_enrolment() {
+    public function test_duplicate_enrolment() {
         $this->having_course_id('course1', 201);
         $this->having_user_id('user1', 301);
         $this->having_role_id('role1', 401);
-        $this->moodle->shouldReceive('role_assignment_exists')
-                ->with(201, 301, 401)->andReturn(true);
+        $this->moodle->shouldReceive('role_assignment_exists')->with(201, 301, 401)->andReturn(true);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
@@ -665,7 +617,7 @@ class EnrolUsersTest extends OperationTest {
         ));
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->having_user_id('user1', 301);
         $this->having_role_id('role1', 401);
         $this->moodle->shouldReceive('start_transaction')->once();
@@ -676,7 +628,7 @@ class EnrolUsersTest extends OperationTest {
         ));
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->having_course_id('course1', 201);
         $this->having_role_id('role1', 401);
         $this->moodle->shouldReceive('start_transaction')->once();
@@ -687,7 +639,7 @@ class EnrolUsersTest extends OperationTest {
         ));
     }
 
-    function test_unknown_role() {
+    public function test_unknown_role() {
         $this->having_course_id('course1', 201);
         $this->having_user_id('user1', 301);
         $this->moodle->shouldReceive('start_transaction')->once();
@@ -701,16 +653,14 @@ class EnrolUsersTest extends OperationTest {
 
 class UnenrolUsersTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
         for ($i = 1; $i <= 3; $i++) {
             $this->having_course_id('course' . $i, 200 + $i);
             $this->having_user_id('user' . $i, 300 + $i);
             $this->having_role_id('role' . $i, 400 + $i);
-            $this->moodle->shouldReceive('role_assignment_exists')
-                ->with(200 + $i, 300 + $i, 400 + $i)->andReturn(false);
-            $this->moodle->shouldReceive('delete_role_assignment')
-                ->with(200 + $i, 300 + $i, 400 + $i)->once()->ordered();
+            $this->moodle->shouldReceive('role_assignment_exists')->with(200 + $i, 300 + $i, 400 + $i)->andReturn(false);
+            $this->moodle->shouldReceive('delete_role_assignment')->with(200 + $i, 300 + $i, 400 + $i)->once()->ordered();
         }
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
@@ -721,7 +671,7 @@ class UnenrolUsersTest extends OperationTest {
         ));
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->having_user_id('user1', 301);
         $this->having_role_id('role1', 401);
         $this->moodle->shouldReceive('start_transaction')->once();
@@ -729,10 +679,10 @@ class UnenrolUsersTest extends OperationTest {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->unenrol_users(array(
             array('course' => 'course1', 'user' => 'user1', 'role' => 'role1'),
-       ));
+        ));
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->having_course_id('course1', 201);
         $this->having_role_id('role1', 401);
         $this->moodle->shouldReceive('start_transaction')->once();
@@ -743,7 +693,7 @@ class UnenrolUsersTest extends OperationTest {
         ));
     }
 
-    function test_unknown_role() {
+    public function test_unknown_role() {
         $this->having_course_id('course1', 201);
         $this->having_user_id('user1', 301);
         $this->moodle->shouldReceive('start_transaction')->once();
@@ -759,7 +709,7 @@ class UnenrolUsersTest extends OperationTest {
 
 class GetGroupsTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $records = array(
             (object) array('id' => 201, 'name' => 'group1', 'description' => 'first group'),
             (object) array('id' => 202, 'name' => 'group2', 'description' => 'second group'),
@@ -775,7 +725,7 @@ class GetGroupsTest extends OperationTest {
         )));
     }
 
-    function test_no_groups() {
+    public function test_no_groups() {
         $this->having_course_id('course1', 101);
         $this->moodle->shouldReceive('groups_get_all_groups')->with(101)->andReturn(false);
 
@@ -784,7 +734,7 @@ class GetGroupsTest extends OperationTest {
         $this->assertThat($result, $this->identicalTo(array()));
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_groups('course1');
     }
@@ -792,30 +742,28 @@ class GetGroupsTest extends OperationTest {
 
 class CreateGroupTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->having_course_id('course1', 101);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('groups_create_group')
-            ->with(101, 'group1', 'Group 1')
-            ->once()->ordered();
+        $this->moodle->shouldReceive('groups_create_group')->with(101, 'group1', 'Group 1')->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->create_group('course1', 'group1', 'Group 1');
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->create_group('course1', 'group1', 'Group 1');
     }
 
-    function test_blank_name() {
+    public function test_blank_name() {
         $this->having_course_id('course1', 101);
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
 
         $this->operations->create_group('course1', '', 'Group 1');
     }
 
-    function test_duplicate_group() {
+    public function test_duplicate_group() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
 
@@ -826,23 +774,22 @@ class CreateGroupTest extends OperationTest {
 
 class DeleteGroupTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('groups_delete_group')->with(201)
-            ->once()->ordered();
+        $this->moodle->shouldReceive('groups_delete_group')->with(201)->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->delete_group('course1', 'group1');
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->delete_group('course1', 'group1');
     }
 
-    function test_unknown_group() {
+    public function test_unknown_group() {
         $this->having_course_id('course1', 101);
         $this->setExpectedException('local_secretaria_exception', 'Unknown group');
         $this->operations->delete_group('course1', 'group1');
@@ -851,38 +798,36 @@ class DeleteGroupTest extends OperationTest {
 
 class GetGroupMembersTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $records = array(
             (object) array('id' => 401, 'username' => 'user1'),
             (object) array('id' => 402, 'username' => 'user2'),
         );
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
-        $this->moodle->shouldReceive('get_group_members')
-            ->with(201)->andReturn($records);
+        $this->moodle->shouldReceive('get_group_members')->with(201)->andReturn($records);
 
         $result = $this->operations->get_group_members('course1', 'group1');
 
         $this->assertThat($result, $this->identicalTo(array('user1', 'user2')));
     }
 
-    function test_no_members() {
+    public function test_no_members() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
-        $this->moodle->shouldReceive('get_group_members')
-            ->with(201)->andReturn(false);
+        $this->moodle->shouldReceive('get_group_members')->with(201)->andReturn(false);
 
         $result = $this->operations->get_group_members('course1', 'group1');
 
         $this->assertThat($result, $this->identicalTo(array()));
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_group_members('course1', 'group1');
     }
 
-    function test_unknown_group() {
+    public function test_unknown_group() {
         $this->having_course_id('course1', 101);
         $this->setExpectedException('local_secretaria_exception', 'Unknown group');
         $this->operations->get_group_members('course1', 'group1');
@@ -891,33 +836,31 @@ class GetGroupMembersTest extends OperationTest {
 
 class AddGroupMembersTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
         $this->having_user_id('user1', 401);
         $this->having_user_id('user2', 402);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('groups_add_member')
-            ->with(201, 401)->once()->ordered();
-        $this->moodle->shouldReceive('groups_add_member')
-            ->with(201, 402)->once()->ordered();
+        $this->moodle->shouldReceive('groups_add_member')->with(201, 401)->once()->ordered();
+        $this->moodle->shouldReceive('groups_add_member')->with(201, 402)->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->add_group_members('course1', 'group1', array('user1', 'user2'));
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->add_group_members('course1', 'group1', array());
     }
 
-    function test_unknown_group() {
+    public function test_unknown_group() {
         $this->having_course_id('course1', 101);
         $this->setExpectedException('local_secretaria_exception', 'Unknown group');
         $this->operations->add_group_members('course1', 'group1', array());
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
         $this->moodle->shouldReceive('start_transaction')->once();
@@ -929,34 +872,32 @@ class AddGroupMembersTest extends OperationTest {
 
 class RemoveGroupMembersTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
         $this->having_user_id('user1', 401);
         $this->having_user_id('user2', 402);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('groups_remove_member')
-            ->with(201, 401)->once()->ordered();
-        $this->moodle->shouldReceive('groups_remove_member')
-            ->with(201, 402)->once()->ordered();
+        $this->moodle->shouldReceive('groups_remove_member')->with(201, 401)->once()->ordered();
+        $this->moodle->shouldReceive('groups_remove_member')->with(201, 402)->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $result = $this->operations->remove_group_members(
             'course1', 'group1', array('user1', 'user2'));
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->remove_group_members('course1', 'group1', array());
     }
 
-    function test_unknown_group() {
+    public function test_unknown_group() {
         $this->having_course_id('course1', 101);
         $this->setExpectedException('local_secretaria_exception', 'Unknown group');
         $this->operations->remove_group_members('course1', 'group1', array());
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->having_course_id('course1', 101);
         $this->having_group_id(101, 'group1', 201);
         $this->moodle->shouldReceive('start_transaction')->once();
@@ -968,7 +909,7 @@ class RemoveGroupMembersTest extends OperationTest {
 
 class GetUserGroupsTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->having_user_id('user1', 201);
         $this->having_course_id('course1', 301);
         $records = array((object) array('id' => 401, 'name' => 'group1'),
@@ -980,7 +921,7 @@ class GetUserGroupsTest extends OperationTest {
         $this->assertThat($result, $this->identicalTo(array('group1', 'group2')));
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->having_group_id(101, 'group1', 201);
         $this->having_course_id('course1', 301);
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
@@ -988,14 +929,14 @@ class GetUserGroupsTest extends OperationTest {
         $this->operations->get_user_groups('user1', 'course1');
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
 
         $this->operations->get_user_groups('user1', 'course1');
     }
 
-    function test_no_groups() {
+    public function test_no_groups() {
         $this->having_user_id('user1', 201);
         $this->having_course_id('course1', 301);
         $this->moodle->shouldReceive('groups_get_all_groups')->with(301, 201)->andReturn(false);
@@ -1010,9 +951,9 @@ class GetUserGroupsTest extends OperationTest {
 
 class GetCourseGradesTest extends OperationTest {
 
-    var $items;
+    public $items;
 
-    function setUp() {
+    public function setUp() {
         parent::setUp();
 
         $this->items = array(
@@ -1052,17 +993,14 @@ class GetCourseGradesTest extends OperationTest {
         );
     }
 
-    function test() {
+    public function test() {
         $this->having_course_id('course1', 101);
         $this->having_user_id('user1', 301);
         $this->having_user_id('user2', 302);
         $this->moodle->shouldReceive('get_grade_items')->with(101)->andReturn($this->items);
-        $this->moodle->shouldReceive('get_grades')->with(401, array(301, 302))
-            ->andReturn(array(301 => '5.1',  302 => '5.2'));
-        $this->moodle->shouldReceive('get_grades')->with(402, array(301, 302))
-            ->andReturn(array(301 => '6.1', 302 => '6.2'));
-        $this->moodle->shouldReceive('get_grades')->with(403, array(301, 302))
-            ->andReturn(array(301 => '7.1', 302 => '7.2'));
+        $this->moodle->shouldReceive('get_grades')->with(401, array(301, 302))->andReturn(array(301 => '5.1',  302 => '5.2'));
+        $this->moodle->shouldReceive('get_grades')->with(402, array(301, 302))->andReturn(array(301 => '6.1', 302 => '6.2'));
+        $this->moodle->shouldReceive('get_grades')->with(403, array(301, 302))->andReturn(array(301 => '7.1', 302 => '7.2'));
 
         $result = $this->operations->get_course_grades('course1', array('user1', 'user2'));
 
@@ -1109,7 +1047,7 @@ class GetCourseGradesTest extends OperationTest {
         )));
     }
 
-    function test_no_users() {
+    public function test_no_users() {
         $this->having_course_id('course1', 101);
         $this->moodle->shouldReceive('get_grade_items')->with(101)->andReturn($this->items);
 
@@ -1149,12 +1087,12 @@ class GetCourseGradesTest extends OperationTest {
         )));
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_course_grades('course1', array('user1', 'user2'));
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->having_course_id('course1', 101);
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->get_course_grades('course1', array('user1', 'user2'));
@@ -1163,14 +1101,12 @@ class GetCourseGradesTest extends OperationTest {
 
 class GetUserGradesTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->having_user_id('user1', 201);
         $this->having_course_id('course1', 301);
         $this->having_course_id('course2', 302);
-        $this->moodle->shouldReceive('get_course_grade')
-            ->with(201, 301)->andReturn('5.1');
-        $this->moodle->shouldReceive('get_course_grade')
-            ->with(201, 302)->andReturn('6.2');
+        $this->moodle->shouldReceive('get_course_grade')->with(201, 301)->andReturn('5.1');
+        $this->moodle->shouldReceive('get_course_grade')->with(201, 302)->andReturn('6.2');
 
         $result = $this->operations->get_user_grades(
             'user1', array('course1', 'course2'));
@@ -1181,13 +1117,13 @@ class GetUserGradesTest extends OperationTest {
         )));
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->having_user_id('user1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_user_grades('user1', array('course1', 'course2'));
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
         $this->operations->get_user_grades('user1', array());
     }
@@ -1197,7 +1133,7 @@ class GetUserGradesTest extends OperationTest {
 
 class GetAssignmentsTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->having_course_id('course1', 101);
         $records = array(
             (object) array(
@@ -1242,7 +1178,7 @@ class GetAssignmentsTest extends OperationTest {
         )));
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_assignments('course1');
     }
@@ -1250,7 +1186,7 @@ class GetAssignmentsTest extends OperationTest {
 
 class GetAssignmentSubmissionsTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $this->having_course_id('course1', 101);
         $this->moodle->shouldReceive('get_assignment_id')->with(101, 'A1')->andReturn(201);
         $records = array(
@@ -1338,7 +1274,7 @@ class GetAssignmentSubmissionsTest extends OperationTest {
         )));
     }
 
-   function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_assignment_submissions('course1', 'A1');
     }
@@ -1349,7 +1285,7 @@ class GetAssignmentSubmissionsTest extends OperationTest {
 
 class GetForumStats extends OperationTest {
 
-    function test() {
+    public function test() {
         $forums = array(
             (object) array(
                 'id' => '201',
@@ -1424,7 +1360,7 @@ class GetForumStats extends OperationTest {
         )));
     }
 
-    function test_no_forums() {
+    public function test_no_forums() {
         $this->having_course_id('course1', 101);
         $this->moodle->shouldReceive('get_forums')->with(101)->andReturn(false);
 
@@ -1433,7 +1369,7 @@ class GetForumStats extends OperationTest {
         $this->assertThat($result, $this->identicalTo(array()));
     }
 
-    function test_no_stats() {
+    public function test_no_stats() {
         $forums = array(
             (object) array(
                 'id' => '201',
@@ -1459,7 +1395,7 @@ class GetForumStats extends OperationTest {
         )));
     }
 
-    function test_unkown_course() {
+    public function test_unkown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $result = $this->operations->get_forum_stats('course1');
     }
@@ -1467,7 +1403,7 @@ class GetForumStats extends OperationTest {
 
 class GetForumUserStats extends OperationTest {
 
-    function test() {
+    public function test() {
         $forums = array(
             (object) array(
                 'id' => 201,
@@ -1506,8 +1442,8 @@ class GetForumUserStats extends OperationTest {
                     'name' => 'Forum1',
                     'type' => 'general',
                     'stats' => array(
-                        array('username' => 'user1', 'group' => 'group1', 'discussions' => '2', 'posts' => '6',),
-                        array('username' => 'user2', 'group' => 'group2', 'discussions' => '5', 'posts' => '10',),
+                        array('username' => 'user1', 'group' => 'group1', 'discussions' => '2', 'posts' => '6', ),
+                        array('username' => 'user2', 'group' => 'group2', 'discussions' => '5', 'posts' => '10', ),
                     )
                 ),
                 array(
@@ -1515,14 +1451,14 @@ class GetForumUserStats extends OperationTest {
                     'name' => 'Forum2',
                     'type' => 'general',
                     'stats' => array(
-                        array('username' => 'user1', 'group' => 'group1', 'discussions' => '3', 'posts' => '8',),
-                        array('username' => 'user2', 'group' => 'group2', 'discussions' => '1', 'posts' => '1',),
+                        array('username' => 'user1', 'group' => 'group1', 'discussions' => '3', 'posts' => '8', ),
+                        array('username' => 'user2', 'group' => 'group2', 'discussions' => '1', 'posts' => '1', ),
                     )
                 )
         )));
     }
 
-    function test_no_forums() {
+    public function test_no_forums() {
         $this->having_course_id('course1', 101);
         $this->moodle->shouldReceive('get_forums')->with(101)->andReturn(false);
 
@@ -1531,7 +1467,7 @@ class GetForumUserStats extends OperationTest {
         $this->assertThat($result, $this->identicalTo(array()));
     }
 
-    function test_no_users() {
+    public function test_no_users() {
         $forums = array(
             (object) array(
                 'id' => 201,
@@ -1592,7 +1528,7 @@ class GetForumUserStats extends OperationTest {
         )));
     }
 
-    function test_no_stats() {
+    public function test_no_stats() {
         $forums = array(
             (object) array(
                 'id' => '201',
@@ -1618,7 +1554,7 @@ class GetForumUserStats extends OperationTest {
         )));
     }
 
-    function test_unkown_course() {
+    public function test_unkown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $result = $this->operations->get_forum_stats('course1');
     }
@@ -1628,7 +1564,7 @@ class GetForumUserStats extends OperationTest {
 
 class GetSurveysTest extends OperationTest {
 
-    function test() {
+    public function test() {
         $records = array(
             (object) array('id' => 201, 'name' => 'Survey 1',
                            'idnumber' => 'S1', 'realm' => 'private'),
@@ -1652,17 +1588,17 @@ class GetSurveysTest extends OperationTest {
         )));
     }
 
-    function test_blank_idnumber() {
+    public function test_blank_idnumber() {
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
         $this->operations->get_assignment_submissions('course1', '');
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_surveys('course1');
     }
 
-    function test_unknown_assignment() {
+    public function test_unknown_assignment() {
         $this->having_course_id('course1', 101);
         $this->moodle->shouldReceive('get_assignment_id')->with(101, 'A1')->andReturn(false);
 
@@ -1673,7 +1609,7 @@ class GetSurveysTest extends OperationTest {
 }
 
 class GetSurveysDataTest extends OperationTest {
-    function test() {
+    public function test() {
 
         $records = array(
             (object) array('id' => 201, 'name' => 'Survey 1',
@@ -1691,33 +1627,33 @@ class GetSurveysDataTest extends OperationTest {
                            'type_id' => '8', 'position' => 4, 'has_choices' => 'y'),
         );
 
-        $responses_bool = array(
+        $responsesbool = array(
             (object) array('responseid' => '2001', 'questionid' => '1001', 'username' => 'student1', 'content' => 'y'),
             (object) array('responseid' => '2002', 'questionid' => '1001', 'username' => 'student2', 'content' => 'n'),
             (object) array('responseid' => '2003', 'questionid' => '1001', 'username' => 'student3', 'content' => 'y'),
         );
 
-        $responses_text = array(
+        $responsestext = array(
             (object) array('responseid' => '2007', 'questionid' => '1003', 'username' => 'student1', 'content' => 'Més implicació del professorat'),
             (object) array('responseid' => '2008', 'questionid' => '1003', 'username' => 'student2', 'content' => 'No canviaria res'),
             (object) array('responseid' => '2009', 'questionid' => '1003', 'username' => 'student3', 'content' => 'Millorar els materials'),
         );
 
-        $responses_multiple = array(
+        $responsesmultiple = array(
             (object) array('responseid' => '2004', 'questionid' => '1002', 'username' => 'student1', 'content' => 'Adequats'),
             (object) array('responseid' => '2004', 'questionid' => '1002', 'username' => 'student1', 'content' => 'Didàctics'),
             (object) array('responseid' => '2005', 'questionid' => '1002', 'username' => 'student2', 'content' => 'Didàctics'),
             (object) array('responseid' => '2006', 'questionid' => '1002', 'username' => 'student3', 'content' => 'Poc Adequats'),
         );
 
-        $choices_multiple = array(
+        $choicesmultiple = array(
             (object) array('questionid' => '1002', 'content' => 'Molt adequats'),
             (object) array('questionid' => '1002', 'content' => 'Adequats'),
             (object) array('questionid' => '1002', 'content' => 'Didàctics'),
             (object) array('questionid' => '1002', 'content' => 'Poc Adequats'),
         );
 
-        $responses_multiple_rank = array(
+        $responsesmultiplerank = array(
             (object) array('responseid' => '2010', 'questionid' => '1004', 'username' => 'student1', 'content' => 'Forums', 'rank' => 3),
             (object) array('responseid' => '2010', 'questionid' => '1004', 'username' => 'student1', 'content' => 'Tasques', 'rank' => 4),
             (object) array('responseid' => '2011', 'questionid' => '1004', 'username' => 'student2', 'content' => 'Forums', 'rank' => 1),
@@ -1726,11 +1662,11 @@ class GetSurveysDataTest extends OperationTest {
             (object) array('responseid' => '2012', 'questionid' => '1004', 'username' => 'student3', 'content' => 'Tasques', 'rank' => 4),
         );
 
-        $choices_multiple_rank = array(
+        $choicesmultiplerank = array(
             (object) array('questionid' => '1004', 'content' => '5'),
         );
 
-        $questions_types = array(
+        $questionstypes = array(
             '1' => 'response_bool',
             '2' => 'response_text',
             '3' => 'response_text',
@@ -1746,7 +1682,7 @@ class GetSurveysDataTest extends OperationTest {
         $this->moodle->shouldReceive('get_surveys')->with(101)->andReturn($records);
         $this->moodle->shouldReceive('get_survey_id')->with(101, 'S1')->andReturn(123);
         $this->moodle->shouldReceive('get_survey_questions')->with(123)->andReturn($questions);
-        $this->moodle->shouldReceive('get_survey_question_types')->with()->andReturn($questions_types);
+        $this->moodle->shouldReceive('get_survey_question_types')->with()->andReturn($questionstypes);
 
         $idquestions = array();
         foreach ($questions as $question) {
@@ -1756,12 +1692,12 @@ class GetSurveysDataTest extends OperationTest {
             $idquestions[$question->type_id][] = $question->id;
         }
 
-        $this->moodle->shouldReceive('get_survey_responses_simple')->with($idquestions[1], $questions_types[1])->andReturn($responses_bool);
-        $this->moodle->shouldReceive('get_survey_responses_simple')->with($idquestions[3], $questions_types[3])->andReturn($responses_text);
-        $this->moodle->shouldReceive('get_survey_responses_multiple')->with($idquestions[5], $questions_types[5])->andReturn($responses_multiple);
-        $this->moodle->shouldReceive('get_survey_question_choices')->with($idquestions[5], $questions_types[5])->andReturn($choices_multiple);
-        $this->moodle->shouldReceive('get_survey_responses_multiple')->with($idquestions[8], $questions_types[8])->andReturn($responses_multiple_rank);
-        $this->moodle->shouldReceive('get_survey_question_choices')->with($idquestions[8], $questions_types[8])->andReturn($choices_multiple_rank);
+        $this->moodle->shouldReceive('get_survey_responses_simple')->with($idquestions[1], $questionstypes[1])->andReturn($responsesbool);
+        $this->moodle->shouldReceive('get_survey_responses_simple')->with($idquestions[3], $questionstypes[3])->andReturn($responsestext);
+        $this->moodle->shouldReceive('get_survey_responses_multiple')->with($idquestions[5], $questionstypes[5])->andReturn($responsesmultiple);
+        $this->moodle->shouldReceive('get_survey_question_choices')->with($idquestions[5], $questionstypes[5])->andReturn($choicesmultiple);
+        $this->moodle->shouldReceive('get_survey_responses_multiple')->with($idquestions[8], $questionstypes[8])->andReturn($responsesmultiplerank);
+        $this->moodle->shouldReceive('get_survey_question_choices')->with($idquestions[8], $questionstypes[8])->andReturn($choicesmultiplerank);
 
         $result = $this->operations->get_surveys_data('course1');
 
@@ -1876,12 +1812,12 @@ class GetSurveysDataTest extends OperationTest {
         )));
     }
 
-    function test_blank_idnumber() {
+    public function test_blank_idnumber() {
         $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
         $this->operations->get_assignment_submissions('course1', '');
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
         $this->operations->get_surveys('course1');
     }
@@ -1889,7 +1825,7 @@ class GetSurveysDataTest extends OperationTest {
 
 class CreateSurveyTest extends OperationTest {
 
-    function setUp() {
+    public function setUp() {
         parent::setUp();
         $this->properties = array(
             'course' => 'course2',
@@ -1904,22 +1840,20 @@ class CreateSurveyTest extends OperationTest {
         );
     }
 
-    function test() {
+    public function test() {
         $this->having_course_id('course1', 101);
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
         $this->moodle->shouldReceive('get_survey_id')->with(101, 'S1')->andReturn(201);
         $this->moodle->shouldReceive('get_survey_id')->with(102, 'S2')->andReturn(false);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('create_survey')
-            ->with(102, 7, 'S2', 'Survey 2', 'Summary 2', 0, 0, 201)
-            ->once()->ordered();
+        $this->moodle->shouldReceive('create_survey')->with(102, 7, 'S2', 'Survey 2', 'Summary 2', 0, 0, 201)->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->create_survey($this->properties);
     }
 
-    function test_opendate() {
+    public function test_opendate() {
         $this->properties['opendate'] = array('year' => 2012, 'month' => 10, 'day' => 22);
         $this->having_course_id('course1', 101);
         $this->having_course_id('course2', 102);
@@ -1927,15 +1861,13 @@ class CreateSurveyTest extends OperationTest {
         $this->moodle->shouldReceive('get_survey_id')->with(101, 'S1')->andReturn(201);
         $this->moodle->shouldReceive('get_survey_id')->with(102, 'S2')->andReturn(false);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('create_survey')
-            ->with(102, 7, 'S2', 'Survey 2', 'Summary 2', mktime(0, 0, 0, 10, 22, 2012), 0, 201)
-            ->once()->ordered();
+        $this->moodle->shouldReceive('create_survey')->with(102, 7, 'S2', 'Survey 2', 'Summary 2', mktime(0, 0, 0, 10, 22, 2012), 0, 201)->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->create_survey($this->properties);
     }
 
-    function test_closedate() {
+    public function test_closedate() {
         $this->properties['closedate'] = array('year' => 2012, 'month' => 10, 'day' => 22);
         $this->having_course_id('course1', 101);
         $this->having_course_id('course2', 102);
@@ -1943,21 +1875,19 @@ class CreateSurveyTest extends OperationTest {
         $this->moodle->shouldReceive('get_survey_id')->with(101, 'S1')->andReturn(201);
         $this->moodle->shouldReceive('get_survey_id')->with(102, 'S2')->andReturn(false);
         $this->moodle->shouldReceive('start_transaction')->once()->ordered();
-        $this->moodle->shouldReceive('create_survey')
-            ->with(102, 7, 'S2', 'Survey 2', 'Summary 2', 0, mktime(23, 55, 0, 10, 22, 2012), 201)
-            ->once()->ordered();
+        $this->moodle->shouldReceive('create_survey')->with(102, 7, 'S2', 'Survey 2', 'Summary 2', 0, mktime(23, 55, 0, 10, 22, 2012), 201)->once()->ordered();
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
         $this->operations->create_survey($this->properties);
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
 
         $this->operations->create_survey($this->properties);
     }
 
-    function test_unknown_section() {
+    public function test_unknown_section() {
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(false);
         $this->setExpectedException('local_secretaria_exception', 'Unknown section');
@@ -1965,7 +1895,7 @@ class CreateSurveyTest extends OperationTest {
         $this->operations->create_survey($this->properties);
     }
 
-    function test_blank_idnumber() {
+    public function test_blank_idnumber() {
         $this->properties['idnumber'] = '';
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
@@ -1974,7 +1904,7 @@ class CreateSurveyTest extends OperationTest {
         $this->operations->create_survey($this->properties);
     }
 
-    function test_duplicate_idnumber() {
+    public function test_duplicate_idnumber() {
         $this->properties['idnumber'] = 'S2';
         $this->having_course_id('course1', 101);
         $this->having_course_id('course2', 102);
@@ -1985,7 +1915,7 @@ class CreateSurveyTest extends OperationTest {
         $this->operations->create_survey($this->properties);
     }
 
-    function test_blank_name() {
+    public function test_blank_name() {
         $this->properties['name'] = '';
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
@@ -1994,7 +1924,7 @@ class CreateSurveyTest extends OperationTest {
         $this->operations->create_survey($this->properties);
     }
 
-    function test_blank_summary() {
+    public function test_blank_summary() {
         $this->properties['summary'] = '';
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
@@ -2003,7 +1933,7 @@ class CreateSurveyTest extends OperationTest {
         $this->operations->create_survey($this->properties);
     }
 
-    function test_blank_template_course() {
+    public function test_blank_template_course() {
         $this->properties['template']['course'] = '';
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
@@ -2012,7 +1942,7 @@ class CreateSurveyTest extends OperationTest {
         $this->operations->create_survey($this->properties);
     }
 
-    function test_blank_template_idnumber() {
+    public function test_blank_template_idnumber() {
         $this->properties['template']['idnumber'] = '';
         $this->having_course_id('course1', 101);
         $this->having_course_id('course2', 102);
@@ -2022,7 +1952,7 @@ class CreateSurveyTest extends OperationTest {
         $this->operations->create_survey($this->properties);
     }
 
-    function test_unknown_template_course() {
+    public function test_unknown_template_course() {
         $this->having_course_id('course1', false);
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
@@ -2032,7 +1962,7 @@ class CreateSurveyTest extends OperationTest {
         $this->operations->create_survey($this->properties);
     }
 
-    function test_unknown_survey() {
+    public function test_unknown_survey() {
         $this->having_course_id('course1', 101);
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
@@ -2120,7 +2050,7 @@ class UpdateSurveyTest extends OperationTest {
 
 class SendMailTest extends OperationTest {
 
-    function setUp() {
+    public function setUp() {
         parent::setUp();
         $this->message = array(
             'sender' => 'user1',
@@ -2131,22 +2061,19 @@ class SendMailTest extends OperationTest {
         );
     }
 
-    function test() {
+    public function test() {
         $this->message['cc'] = array('user3', 'user4');
         $this->message['bcc'] = array('user5');
         $this->having_course_id('course1', 201);
         for ($i = 1; $i <= 5; $i++) {
             $this->having_user_id('user' . $i, 300 + $i);
         }
-        $this->moodle->shouldReceive('send_mail')
-            ->with(301, 201, 'subject text', 'content text',
-                   array(302), array(303, 304), array(305))
-            ->once();
+        $this->moodle->shouldReceive('send_mail')->with(301, 201, 'subject text', 'content text', array(302), array(303, 304), array(305))->once();
 
         $this->operations->send_mail($this->message);
     }
 
-    function test_unknown_course() {
+    public function test_unknown_course() {
         $this->having_user_id('user1', 301);
         $this->having_user_id('user2', 302);
         $this->setExpectedException('local_secretaria_exception', 'Unknown course');
@@ -2154,14 +2081,14 @@ class SendMailTest extends OperationTest {
         $this->operations->send_mail($this->message);
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->having_course_id('course1', 201);
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
 
         $this->operations->send_mail($this->message);
     }
 
-    function test_duplicate_user() {
+    public function test_duplicate_user() {
         $this->message['cc'] = array('user1');
         $this->having_course_id('course1', 201);
         $this->having_user_id('user1', 301);
@@ -2172,7 +2099,7 @@ class SendMailTest extends OperationTest {
         $this->operations->send_mail($this->message);
     }
 
-    function test_no_recipient() {
+    public function test_no_recipient() {
         $this->message['to'] = array();
         $this->having_course_id('course1', 201);
         $this->having_user_id('user1', 301);
@@ -2185,8 +2112,8 @@ class SendMailTest extends OperationTest {
 
 class GetMailStatsTest extends OperationTest {
 
-    function test() {
-        $records_received = array(
+    public function test() {
+        $recordsreceived = array(
             (object) array(
                 'id' => '201',
                 'course' => 'course1',
@@ -2203,7 +2130,7 @@ class GetMailStatsTest extends OperationTest {
                 'messages' => '15',
             ),
         );
-        $records_sent = array(
+        $recordssent = array(
             (object) array(
                 'id' => '201',
                 'course' => 'course1',
@@ -2221,10 +2148,8 @@ class GetMailStatsTest extends OperationTest {
             ),
         );
         $this->having_user_id('user1', 201);
-        $this->moodle->shouldReceive('get_mail_stats_received')
-            ->with(201, 1e10, 2e10)->andReturn($records_received);
-        $this->moodle->shouldReceive('get_mail_stats_sent')
-            ->with(201, 1e10, 2e10)->andReturn($records_sent);
+        $this->moodle->shouldReceive('get_mail_stats_received')->with(201, 1e10, 2e10)->andReturn($recordsreceived);
+        $this->moodle->shouldReceive('get_mail_stats_sent')->with(201, 1e10, 2e10)->andReturn($recordssent);
 
         $result = $this->operations->get_mail_stats('user1', 1e10, 2e10);
 
@@ -2235,7 +2160,7 @@ class GetMailStatsTest extends OperationTest {
         )));
     }
 
-    function test_unknown_user() {
+    public function test_unknown_user() {
         $this->setExpectedException('local_secretaria_exception', 'Unknown user');
 
         $this->operations->get_mail_stats('user1', 1e10, 2e10);

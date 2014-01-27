@@ -13,15 +13,15 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
     private $transaction;
 
-    function auth_plugin() {
+    public function auth_plugin() {
         return get_config('local_secretaria', 'auth_plugin');
     }
 
-    function check_password($password) {
+    public function check_password($password) {
         return $password and check_password_policy($password, $errormsg);
     }
 
-    function commit_transaction() {
+    public function commit_transaction() {
         if ($this->transaction) {
             $this->transaction->allow_commit();
             $this->transaction = null;
@@ -30,7 +30,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         }
     }
 
-    function create_survey($courseid, $section, $idnumber, $name, $summary,
+    public function create_survey($courseid, $section, $idnumber, $name, $summary,
                            $opendate, $closedate, $templateid) {
         global $CFG, $DB;
         require_once($CFG->dirroot.'/mod/questionnaire/locallib.php');
@@ -83,7 +83,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         rebuild_course_cache($course->id);
     }
 
-    function create_user($auth, $username, $password, $firstname, $lastname, $email) {
+    public function create_user($auth, $username, $password, $firstname, $lastname, $email) {
         global $CFG, $DB;
 
         $record = new stdClass;
@@ -108,13 +108,13 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         events_trigger('user_created', $DB->get_record('user', array('id' => $id)));
     }
 
-    function delete_user($userid) {
+    public function delete_user($userid) {
         global $DB;
         $record = $DB->get_record('user', array('id' => $userid), 'id, username');
         delete_user($record);
     }
 
-    function delete_role_assignment($courseid, $userid, $roleid) {
+    public function delete_role_assignment($courseid, $userid, $roleid) {
         global $DB;
 
         $context = context_course::instance($courseid);
@@ -134,7 +134,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         }
     }
 
-    function get_assignment_id($courseid, $idnumber) {
+    public function get_assignment_id($courseid, $idnumber) {
         global $DB;
         $sql = 'SELECT a.id'
             . ' FROM {course_modules} cm '
@@ -145,7 +145,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_field_sql($sql, array($courseid, $idnumber, 'assign', $courseid));
     }
 
-    function get_assignment_submissions($assignmentid) {
+    public function get_assignment_submissions($assignmentid) {
         global $DB;
 
         $modid = $DB->get_field('modules', 'id', array('name' => 'assign'));
@@ -172,7 +172,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-    function get_assignments($courseid) {
+    public function get_assignments($courseid) {
         global $DB;
         $sql = 'SELECT a.id, cm.idnumber, a.name,'
             . ' a.allowsubmissionsfromdate AS opentime, a.duedate AS closetime'
@@ -183,34 +183,34 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_sql($sql, array($courseid, 'assign', $courseid));
     }
 
-    function get_course($shortname) {
+    public function get_course($shortname) {
         global $DB;
         return $DB->get_record('course', array('shortname' => $shortname),
                                'id, shortname, fullname, visible, startdate');
     }
 
-    function get_course_grade($userid, $courseid) {
+    public function get_course_grade($userid, $courseid) {
         grade_regrade_final_grades($courseid);
-        $grade_item = grade_item::fetch_course_item($courseid);
-        $grade_grade = grade_grade::fetch(array('userid' => $userid, 'itemid' => $grade_item->id));
-        $value = grade_format_gradevalue($grade_grade->finalgrade, $grade_item);
-        return $grade_item->needsupdate ? get_string('error') : $value;
+        $gradeitem = grade_item::fetch_course_item($courseid);
+        $gradegrade = grade_grade::fetch(array('userid' => $userid, 'itemid' => $gradeitem->id));
+        $value = grade_format_gradevalue($gradegrade->finalgrade, $gradeitem);
+        return $gradeitem->needsupdate ? get_string('error') : $value;
     }
 
-    function get_course_id($shortname) {
+    public function get_course_id($shortname) {
         global $DB;
         return $DB->get_field('course', 'id', array('shortname' => $shortname));
     }
 
-    function get_courses() {
+    public function get_courses() {
         global $DB;
         $select = 'id != :siteid';
         $params = array('siteid' => SITEID);
         $fields = 'id, shortname';
         return $DB->get_records_select('course', $select, $params, '', $fields);
-   }
+    }
 
-    function get_forum_stats($forumid) {
+    public function get_forum_stats($forumid) {
         global $DB;
         $sql = 'SELECT d.groupid, g.name AS groupname, COUNT(p.id) AS posts,'
             . ' COUNT(DISTINCT d.id) AS discussions'
@@ -222,7 +222,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_sql($sql, array('forumid' => $forumid));
     }
 
-    function get_forum_user_stats($forumid, $users) {
+    public function get_forum_user_stats($forumid, $users) {
         global $DB;
 
         $sqlin = '';
@@ -245,7 +245,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_sql($sql, array_merge(array('forumid' => $forumid), $usernameparams));
     }
 
-    function get_forums($courseid) {
+    public function get_forums($courseid) {
         global $DB;
         $sql = 'SELECT f.id, cm.idnumber, f.name, f.type'
             . ' FROM {course_modules} cm'
@@ -256,56 +256,56 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_sql($sql, $params);
     }
 
-    function get_grade_items($courseid) {
+    public function get_grade_items($courseid) {
         $result = array();
 
-        $grade_items = grade_item::fetch_all(array('courseid' => $courseid)) ?: array();
+        $gradeitems = grade_item::fetch_all(array('courseid' => $courseid)) ?: array();
 
-        foreach ($grade_items as $grade_item) {
-            if ($grade_item->itemtype == 'course') {
+        foreach ($gradeitems as $gradeitem) {
+            if ($gradeitem->itemtype == 'course') {
                 $name = null;
-            } elseif ($grade_item->itemtype == 'category') {
-                $grade_category = $grade_item->load_parent_category();
-                $name = $grade_category->get_name();
+            } else if ($gradeitem->itemtype == 'category') {
+                $gradecategory = $gradeitem->load_parent_category();
+                $name = $gradecategory->get_name();
             } else {
-                $name = $grade_item->itemname;
+                $name = $gradeitem->itemname;
             }
             $result[] = array(
-                'id' => $grade_item->id,
-                'idnumber' => $grade_item->idnumber,
-                'type' => $grade_item->itemtype,
-                'module' => $grade_item->itemmodule,
+                'id' => $gradeitem->id,
+                'idnumber' => $gradeitem->idnumber,
+                'type' => $gradeitem->itemtype,
+                'module' => $gradeitem->itemmodule,
                 'name' => $name,
-                'sortorder' => $grade_item->sortorder,
-                'grademin' => grade_format_gradevalue($grade_item->grademin, $grade_item),
-                'grademax' => grade_format_gradevalue($grade_item->grademax, $grade_item),
-                'gradepass' => grade_format_gradevalue($grade_item->gradepass, $grade_item),
+                'sortorder' => $gradeitem->sortorder,
+                'grademin' => grade_format_gradevalue($gradeitem->grademin, $gradeitem),
+                'grademax' => grade_format_gradevalue($gradeitem->grademax, $gradeitem),
+                'gradepass' => grade_format_gradevalue($gradeitem->gradepass, $gradeitem),
             );
         }
 
         return $result;
     }
 
-    function get_grades($itemid, $userids) {
+    public function get_grades($itemid, $userids) {
         $result = array();
 
-        $grade_item = grade_item::fetch(array('id' => $itemid));
-        $errors = grade_regrade_final_grades($grade_item->courseid);
-        $grade_grades = grade_grade::fetch_users_grades($grade_item, $userids);
+        $gradeitem = grade_item::fetch(array('id' => $itemid));
+        $errors = grade_regrade_final_grades($gradeitem->courseid);
+        $gradegrades = grade_grade::fetch_users_grades($gradeitem, $userids);
 
         foreach ($userids as $userid) {
-            $value = grade_format_gradevalue($grade_grades[$userid]->finalgrade, $grade_item);
+            $value = grade_format_gradevalue($gradegrades[$userid]->finalgrade, $gradeitem);
             $result[$userid] = isset($errors[$itemid]) ? get_string('error') : $value;
         }
 
         return $result;
     }
 
-    function get_group_id($courseid, $name) {
+    public function get_group_id($courseid, $name) {
         return groups_get_group_by_name($courseid, $name);
     }
 
-    function get_group_members($groupid) {
+    public function get_group_members($groupid) {
         global $CFG, $DB;
         $sql = 'SElECT u.username'
             . ' FROM {groups_members} gm'
@@ -318,7 +318,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-    function get_mail_stats_received($userid, $starttime, $endtime) {
+    public function get_mail_stats_received($userid, $starttime, $endtime) {
         global $DB;
         $sql = 'SELECT c.id, c.shortname AS course, COUNT(*) as messages'
             . ' FROM {local_mail_index} i'
@@ -340,7 +340,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-    function get_mail_stats_sent($userid, $starttime, $endtime) {
+    public function get_mail_stats_sent($userid, $starttime, $endtime) {
         global $DB;
         $sql = 'SELECT c.id, c.shortname AS course, COUNT(*) AS messages'
             . ' FROM {local_mail_index} i'
@@ -362,7 +362,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-    function get_role_assignments_by_course($courseid) {
+    public function get_role_assignments_by_course($courseid) {
          global $CFG, $DB;
 
          $sql = 'SELECT ra.id, u.username AS user, r.shortname AS role'
@@ -390,9 +390,9 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
              'itemid' => 0,
              'mnethostid' => $CFG->mnet_localhost_id,
          ));
-     }
+    }
 
-    function get_role_assignments_by_user($userid) {
+    public function get_role_assignments_by_user($userid) {
         global $DB;
 
         $sql = 'SELECT ra.id, c.shortname AS course, r.shortname AS role'
@@ -417,14 +417,14 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
             'itemid' => 0,
             'userid' => $userid,
         ));
-     }
+    }
 
-    function get_role_id($role) {
+    public function get_role_id($role) {
         global $DB;
         return $DB->get_field('role', 'id', array('shortname' => $role));
     }
 
-    function get_questionnaire_id($courseid, $idnumber) {
+    public function get_questionnaire_id($courseid, $idnumber) {
         global $DB;
 
         $sql = 'SELECT q.id'
@@ -442,7 +442,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-    function get_survey_id($courseid, $idnumber) {
+    public function get_survey_id($courseid, $idnumber) {
         global $DB;
 
         $sql = 'SELECT q.sid'
@@ -460,7 +460,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-    function get_surveys($courseid) {
+    public function get_surveys($courseid) {
         global $DB;
 
         $sql = 'SELECT q.id, q.name, cm.idnumber, qs.realm'
@@ -481,13 +481,13 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-    function get_survey_question_types() {
+    public function get_survey_question_types() {
         global $DB;
 
         return $DB->get_records_menu('questionnaire_question_type', null, '', 'typeid, response_table');
     }
 
-    function get_survey_questions($surveyid) {
+    public function get_survey_questions($surveyid) {
         global $DB;
 
         $sql = 'SELECT q.id, q.name, q.content, q.type_id, q.position, qt.has_choices'
@@ -500,7 +500,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-    function get_survey_responses_simple($questionids, $type) {
+    public function get_survey_responses_simple($questionids, $type) {
         global $DB;
 
         $content = '';
@@ -508,7 +508,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
         if ($type == 'response_bool') {
             $content = ', t.choice_id as content';
-        } elseif ($type == 'response_text' or $type == 'response_date') {
+        } else if ($type == 'response_text' or $type == 'response_date') {
             $content = ', t.response as content';
         }
 
@@ -521,7 +521,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_sql($sql, $questionidparams);
     }
 
-    function get_survey_responses_multiple($questionids, $type) {
+    public function get_survey_responses_multiple($questionids, $type) {
         global $DB;
 
         list($sqlquestionids, $questionidparams) = $DB->get_in_or_equal($questionids, SQL_PARAMS_NAMED, 'questionid');
@@ -530,7 +530,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
             $field = ', t.rank';
             $sqlro = '';
             $paramc = array();
-        } elseif ($type == 'resp_single') {
+        } else if ($type == 'resp_single') {
             $field = ' ';
             $sqlro = '';
             $paramc = array();
@@ -553,7 +553,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_sql($sql, $params);
     }
 
-    function get_survey_question_choices($questionids, $type) {
+    public function get_survey_question_choices($questionids, $type) {
         global $DB;
 
         list($sqlquestionids, $params) = $DB->get_in_or_equal($questionids, SQL_PARAMS_NAMED, 'questionid');
@@ -571,7 +571,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_sql($sql, $params);
     }
 
-    function get_user($username) {
+    public function get_user($username) {
          global $CFG, $DB;
 
          $conditions = array(
@@ -583,18 +583,18 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
          $fields = 'id, auth, username, firstname, lastname, email, lastaccess, picture';
 
          return $DB->get_record('user', $conditions, $fields);
-     }
+    }
 
-     function get_user_id($username) {
+    public function get_user_id($username) {
          global $CFG, $DB;
          return $DB->get_field('user', 'id', array(
              'mnethostid' => $CFG->mnet_localhost_id,
              'username' => $username,
              'deleted' => 0,
          ));
-     }
+    }
 
-     function get_user_lastaccess($userids) {
+    public function get_user_lastaccess($userids) {
          global $DB;
 
          $sql = 'SELECT l.id, l.userid, c.shortname AS course, l.timeaccess AS time'
@@ -603,9 +603,9 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
              . ' WHERE l.userid IN (' . implode(',', $userids) . ')';
 
          return $userids ? $DB->get_records_sql($sql) : false;
-     }
+    }
 
-    function get_users() {
+    public function get_users() {
         global $CFG, $DB;
         $select = 'mnethostid = ? AND deleted = ? AND username <> ?';
         $params = array($CFG->mnet_localhost_id, false, 'guest');
@@ -613,50 +613,50 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_select('user', $select, $params, '', $fields);
     }
 
-     function groups_add_member($groupid, $userid) {
+    public function groups_add_member($groupid, $userid) {
          groups_add_member($groupid, $userid);
-     }
+    }
 
-     function groups_create_group($courseid, $name, $description) {
+    public function groups_create_group($courseid, $name, $description) {
          $data = new stdClass;
          $data->courseid = $courseid;
          $data->name = $name;
          $data->description = $description;
          groups_create_group($data);
-     }
+    }
 
-     function groups_delete_group($groupid) {
+    public function groups_delete_group($groupid) {
          groups_delete_group($groupid);
-     }
+    }
 
-     function groups_get_all_groups($courseid, $userid=0) {
+    public function groups_get_all_groups($courseid, $userid=0) {
         return groups_get_all_groups($courseid, $userid);
-     }
+    }
 
-     function groups_remove_member($groupid, $userid) {
-         if (groups_remove_member_allowed($groupid, $userid)) {
-             groups_remove_member($groupid, $userid);
-         }
-     }
+    public function groups_remove_member($groupid, $userid) {
+        if (groups_remove_member_allowed($groupid, $userid)) {
+            groups_remove_member($groupid, $userid);
+        }
+    }
 
-     function insert_role_assignment($courseid, $userid, $roleid) {
+    public function insert_role_assignment($courseid, $userid, $roleid) {
          global $DB;
 
          $plugin = enrol_get_plugin('manual');
          $conditions = array('enrol' => 'manual', 'courseid' => $courseid);
          $enrol = $DB->get_record('enrol', $conditions, '*', MUST_EXIST);
          $plugin->enrol_user($enrol, $userid, $roleid, 0, 0, null, false);
-     }
+    }
 
-    function make_timestamp($year, $month, $day, $hour=0, $minute=0, $second=0) {
+    public function make_timestamp($year, $month, $day, $hour=0, $minute=0, $second=0) {
         return make_timestamp($year, $month, $day, $hour, $minute, $second);
     }
 
-    function prevent_local_passwords($auth) {
+    public function prevent_local_passwords($auth) {
         return get_auth_plugin($auth)->prevent_local_passwords();
     }
 
-    function role_assignment_exists($courseid, $userid, $roleid) {
+    public function role_assignment_exists($courseid, $userid, $roleid) {
         global $DB;
 
         $sql = 'SELECT ra.id'
@@ -684,19 +684,19 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         ));
     }
 
-    function rollback_transaction(Exception $e) {
+    public function rollback_transaction(Exception $e) {
         if ($this->transaction) {
             $this->transaction->rollback($e);
         }
     }
 
-    function section_exists($courseid, $section) {
+    public function section_exists($courseid, $section) {
         global $DB;
         $conditions = array('course' => $courseid, 'section' => $section);
         return $DB->record_exists('course_sections', $conditions);
     }
 
-    function send_mail($sender, $courseid, $subject, $content, $to, $cc, $bcc) {
+    public function send_mail($sender, $courseid, $subject, $content, $to, $cc, $bcc) {
         global $CFG;
 
         require_once($CFG->dirroot . '/local/mail/message.class.php');
@@ -717,7 +717,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $message->send();
     }
 
-    function start_transaction() {
+    public function start_transaction() {
         global $DB;
         if ($this->transaction) {
             throw new local_secretaria_exception('Internal error');
@@ -726,7 +726,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         }
     }
 
-    function update_course($record) {
+    public function update_course($record) {
         global $DB;
         $record->timemodified = time();
         if (isset($record->visible)) {
@@ -735,7 +735,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $DB->update_record('course', $record);
     }
 
-    function update_password($userid, $password) {
+    public function update_password($userid, $password) {
         global $DB;
         $record = $DB->get_record('user', array('id' => $userid));
         update_internal_user_password($record, $password);
@@ -754,12 +754,12 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $DB->update_record('course_modules', $record);
     }
 
-    function update_user($record) {
+    public function update_user($record) {
         global $DB;
         $DB->update_record('user', $record);
     }
 
-    function user_picture_url($userid) {
+    public function user_picture_url($userid) {
         global $CFG;
         $context = context_user::instance($userid);
         return "{$CFG->httpswwwroot}/pluginfile.php/{$context->id}/user/icon/f1";

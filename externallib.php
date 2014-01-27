@@ -250,7 +250,7 @@ class moodle_local_secretaria_external extends external_api {
     }
 
     /* Enrolments */
-    
+
     public static function get_course_enrolments($course) {
         return self::execute('get_course_enrolments', array('course' => $course));
     }

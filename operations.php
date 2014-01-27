@@ -6,13 +6,13 @@ class local_secretaria_exception extends Exception {
 
 class local_secretaria_operations {
 
-    function __construct($moodle=null) {
+    public function __construct($moodle=null) {
         $this->moodle = $moodle;
     }
 
     /* Users */
 
-    function get_user($username) {
+    public function get_user($username) {
         if (!$record = $this->moodle->get_user($username)) {
             throw new local_secretaria_exception('Unknown user');
         }
@@ -29,7 +29,7 @@ class local_secretaria_operations {
         );
     }
 
-    function get_user_lastaccess($users) {
+    public function get_user_lastaccess($users) {
         $usernames = array();
         foreach ($users as $username) {
             if (!$userid = $this->moodle->get_user_id($username)) {
@@ -51,7 +51,7 @@ class local_secretaria_operations {
         return $result;
     }
 
-    function create_user($properties) {
+    public function create_user($properties) {
         if (!$properties['username'] or !$properties['firstname'] or !$properties['lastname']) {
             throw new local_secretaria_exception('Invalid parameters');
         }
@@ -64,7 +64,7 @@ class local_secretaria_operations {
 
         if ($this->moodle->prevent_local_passwords($auth)) {
             $properties['password'] = false;
-        } elseif (!isset($properties['password']) or
+        } else if (!isset($properties['password']) or
                   !$this->moodle->check_password($properties['password'])) {
             throw new local_secretaria_exception('Invalid password');
         }
@@ -81,7 +81,7 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
-    function update_user($username, $properties) {
+    public function update_user($username, $properties) {
         if (!$user = $this->moodle->get_user($username)) {
             throw new local_secretaria_exception('Unknown user');
         }
@@ -127,7 +127,7 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
-    function delete_user($username) {
+    public function delete_user($username) {
         if (!$userid = $this->moodle->get_user_id($username)) {
             throw new local_secretaria_exception('Unknown user');
         }
@@ -136,7 +136,7 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
-    function get_users() {
+    public function get_users() {
         $result = array();
         if ($records = $this->moodle->get_users()) {
             foreach ($records as $record) {
@@ -148,11 +148,11 @@ class local_secretaria_operations {
 
     /* Courses */
 
-    function has_course($shortname) {
+    public function has_course($shortname) {
         return (bool) $this->moodle->get_course_id($shortname);
     }
 
-    function get_course($shortname) {
+    public function get_course($shortname) {
         if (!$record = $this->moodle->get_course($shortname)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -170,7 +170,7 @@ class local_secretaria_operations {
         );
     }
 
-    function update_course($shortname, $properties) {
+    public function update_course($shortname, $properties) {
         if (!$courseid = $this->moodle->get_course_id($shortname)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -210,7 +210,7 @@ class local_secretaria_operations {
         $this->moodle->update_course($record);
     }
 
-    function get_courses() {
+    public function get_courses() {
         $result = array();
         if ($records = $this->moodle->get_courses()) {
             foreach ($records as $record) {
@@ -222,7 +222,7 @@ class local_secretaria_operations {
 
     /* Enrolments */
 
-    function get_course_enrolments($course) {
+    public function get_course_enrolments($course) {
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -237,7 +237,7 @@ class local_secretaria_operations {
         return $enrolments;
     }
 
-    function get_user_enrolments($username) {
+    public function get_user_enrolments($username) {
         if (!$userid = $this->moodle->get_user_id($username)) {
             throw new local_secretaria_exception('Unknown user');
         }
@@ -252,7 +252,7 @@ class local_secretaria_operations {
         return $enrolments;
     }
 
-    function enrol_users($enrolments) {
+    public function enrol_users($enrolments) {
         $this->moodle->start_transaction();
 
         foreach ($enrolments as $enrolment) {
@@ -273,7 +273,7 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
-    function unenrol_users($enrolments) {
+    public function unenrol_users($enrolments) {
         $this->moodle->start_transaction();
 
         foreach ($enrolments as $enrolment) {
@@ -294,7 +294,7 @@ class local_secretaria_operations {
 
     /* Groups */
 
-    function get_groups($course) {
+    public function get_groups($course) {
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -311,7 +311,7 @@ class local_secretaria_operations {
         return $groups;
     }
 
-    function create_group($course, $name, $description) {
+    public function create_group($course, $name, $description) {
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -326,7 +326,7 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
-    function delete_group($course, $name) {
+    public function delete_group($course, $name) {
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -338,7 +338,7 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
-    function get_group_members($course, $name) {
+    public function get_group_members($course, $name) {
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -354,10 +354,10 @@ class local_secretaria_operations {
         return $users;
     }
 
-    function add_group_members($course, $name, $users) {
+    public function add_group_members($course, $name, $users) {
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
-       }
+        }
         if (!$groupid = $this->moodle->get_group_id($courseid, $name)) {
             throw new local_secretaria_exception('Unknown group');
         }
@@ -374,7 +374,7 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
-    function remove_group_members($course, $name, $users) {
+    public function remove_group_members($course, $name, $users) {
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -394,7 +394,7 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
-    function get_user_groups($user, $course) {
+    public function get_user_groups($user, $course) {
         if (!$userid = $this->moodle->get_user_id($user)) {
             throw new local_secretaria_exception('Unknown user');
         }
@@ -415,7 +415,7 @@ class local_secretaria_operations {
 
     /* Grades */
 
-    function get_course_grades($course, $users) {
+    public function get_course_grades($course, $users) {
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -458,7 +458,7 @@ class local_secretaria_operations {
         return $result;
     }
 
-    function get_user_grades($user, $courses)  {
+    public function get_user_grades($user, $courses) {
         if (!$userid = $this->moodle->get_user_id($user)) {
             throw new local_secretaria_exception('Unknown user');
         }
@@ -480,7 +480,7 @@ class local_secretaria_operations {
 
     /* Assignments */
 
-    function get_assignments($course) {
+    public function get_assignments($course) {
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -501,7 +501,7 @@ class local_secretaria_operations {
         return $result;
     }
 
-    function get_assignment_submissions($course, $idnumber) {
+    public function get_assignment_submissions($course, $idnumber) {
         if (!$idnumber) {
             throw new local_secretaria_exception('Invalid parameters');
         }
@@ -534,7 +534,7 @@ class local_secretaria_operations {
 
     /* Forums */
 
-    function get_forum_stats($course) {
+    public function get_forum_stats($course) {
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -565,7 +565,7 @@ class local_secretaria_operations {
         return $result;
     }
 
-    function get_forum_user_stats($course, $users) {
+    public function get_forum_user_stats($course, $users) {
         if (!$courseid = $this->moodle->get_course_id($course)) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -599,7 +599,7 @@ class local_secretaria_operations {
 
     /* Surveys */
 
-    function get_surveys($course) {
+    public function get_surveys($course) {
         $result = array();
 
         if (!$courseid = $this->moodle->get_course_id($course)) {
@@ -619,7 +619,7 @@ class local_secretaria_operations {
         return $result;
     }
 
-    function get_surveys_data($course) {
+    public function get_surveys_data($course) {
         $result = array();
 
         if (!$courseid = $this->moodle->get_course_id($course)) {
@@ -627,7 +627,7 @@ class local_secretaria_operations {
         }
 
         if ($surveys = $this->moodle->get_surveys($courseid)) {
-            $question_types = $this->moodle->get_survey_question_types();
+            $questiontypes = $this->moodle->get_survey_question_types();
             foreach ($surveys as $survey) {
                 $stats = array();
                 if (!empty($survey->idnumber)) {
@@ -640,21 +640,21 @@ class local_secretaria_operations {
                             $groupquestions[$question->type_id] = array();
                         }
                         $groupquestions[$question->type_id][] = $question->id;
-                        $questions[$question->id]->type = $question_types[$question->type_id];
+                        $questions[$question->id]->type = $questiontypes[$question->type_id];
                     }
                     $responsestats = array();
                     $questionchoices = array();
                     foreach ($groupquestions as $type => $question) {
-                        switch ($question_types[$type]) {
+                        switch ($questiontypes[$type]) {
                             case 'response_bool':
                             case 'response_text':
                             case 'response_date':
-                                $responses = $this->moodle->get_survey_responses_simple($question, $question_types[$type]);
+                                $responses = $this->moodle->get_survey_responses_simple($question, $questiontypes[$type]);
                                 $choices = array();
                                 break;
                             default:
-                                $responses = $this->moodle->get_survey_responses_multiple($question, $question_types[$type]);
-                                $choices = $this->moodle->get_survey_question_choices($question, $question_types[$type]);
+                                $responses = $this->moodle->get_survey_responses_multiple($question, $questiontypes[$type]);
+                                $choices = $this->moodle->get_survey_question_choices($question, $questiontypes[$type]);
                         }
 
                         foreach ($responses as $response) {
@@ -673,7 +673,7 @@ class local_secretaria_operations {
                                 $responsestats[$response->questionid][$response->responseid] = array (
                                     'username' => $response->username,
                                     'content' => array($response->content),
-                                    'rank' => isset($response->rank)?array($response->rank):array(),
+                                    'rank' => isset($response->rank) ? array($response->rank) : array(),
                                 );
                             } else {
                                 $responsestats[$response->questionid][$response->responseid]['content'][] = $response->content;
@@ -683,7 +683,7 @@ class local_secretaria_operations {
                             }
                         }
                         if (!empty($choices)) {
-                            if ($question_types[$type] == 'response_rank') {
+                            if ($questiontypes[$type] == 'response_rank') {
                                 foreach ($choices as $choice) {
                                     $questionchoices[$choice->questionid] = range(1, $choice->content);
                                 }
@@ -704,8 +704,8 @@ class local_secretaria_operations {
                             'position' => $question->position,
                             'type' => $question->type,
                             'has_choices' => $question->has_choices,
-                            'choices' => isset($questionchoices[$question->id])?$questionchoices[$question->id]:array(),
-                            'responses' => isset($responsestats[$question->id])?$responsestats[$question->id]:array(),
+                            'choices' => isset($questionchoices[$question->id]) ? $questionchoices[$question->id] : array(),
+                            'responses' => isset($responsestats[$question->id]) ? $responsestats[$question->id] : array(),
                         );
                     }
                 }
@@ -720,7 +720,7 @@ class local_secretaria_operations {
         return $result;
     }
 
-    function create_survey($properties) {
+    public function create_survey($properties) {
         if (empty($properties['idnumber']) or
             empty($properties['name']) or
             empty($properties['summary']) or
@@ -804,7 +804,7 @@ class local_secretaria_operations {
 
     /* Mail */
 
-    function send_mail($message) {
+    public function send_mail($message) {
         if (!$courseid = $this->moodle->get_course_id($message['course'])) {
             throw new local_secretaria_exception('Unknown course');
         }
@@ -844,7 +844,7 @@ class local_secretaria_operations {
                                  $message['content'], $to, $cc, $bcc);
     }
 
-    function get_mail_stats($user, $starttime, $endtime) {
+    public function get_mail_stats($user, $starttime, $endtime) {
         if (!$userid = $this->moodle->get_user_id($user)) {
             throw new local_secretaria_exception('Unknown user');
         }
@@ -882,61 +882,61 @@ class local_secretaria_operations {
 }
 
 interface local_secretaria_moodle {
-    function auth_plugin();
-    function check_password($password);
-    function commit_transaction();
-    function create_survey($courseid, $section, $name, $summary, $idnumber,
+    public function auth_plugin();
+    public function check_password($password);
+    public function commit_transaction();
+    public function create_survey($courseid, $section, $name, $summary, $idnumber,
                            $opendate, $closedate, $templateid);
-    function create_user($auth, $username, $password, $firstname, $lastname, $email);
-    function delete_user($record);
-    function delete_role_assignment($courseid, $userid, $roleid);
-    function get_assignment_id($courseid, $idnumber);
-    function get_assignment_submissions($assignmentid);
-    function get_assignments($courseid);
-    function get_course($shortname);
-    function get_course_id($shortname);
-    function get_courses();
-    function get_course_grade($userid, $courseid);
-    function get_forum_stats($forumid);
-    function get_forum_user_stats($forumid, $users);
-    function get_forums($courseid);
-    function get_grade_items($courseid);
-    function get_grades($itemid, $userids);
-    function get_group_id($courseid, $name);
-    function get_group_members($groupid);
-    function get_mail_stats_sent($userid, $starttime, $endtime);
-    function get_mail_stats_received($userid, $starttime, $endtime);
+    public function create_user($auth, $username, $password, $firstname, $lastname, $email);
+    public function delete_user($record);
+    public function delete_role_assignment($courseid, $userid, $roleid);
+    public function get_assignment_id($courseid, $idnumber);
+    public function get_assignment_submissions($assignmentid);
+    public function get_assignments($courseid);
+    public function get_course($shortname);
+    public function get_course_id($shortname);
+    public function get_courses();
+    public function get_course_grade($userid, $courseid);
+    public function get_forum_stats($forumid);
+    public function get_forum_user_stats($forumid, $users);
+    public function get_forums($courseid);
+    public function get_grade_items($courseid);
+    public function get_grades($itemid, $userids);
+    public function get_group_id($courseid, $name);
+    public function get_group_members($groupid);
+    public function get_mail_stats_sent($userid, $starttime, $endtime);
+    public function get_mail_stats_received($userid, $starttime, $endtime);
     public function get_questionnaire_id($courseid, $idnumber);
-    function get_role_assignments_by_course($courseid);
-    function get_role_assignments_by_user($userid);
-    function get_role_id($role);
-    function get_survey_id($courseid, $idnumber);
-    function get_surveys($courseid);
-    function get_survey_question_types();
-    function get_survey_questions($surveyid);
-    function get_survey_responses_simple($questionids, $type);
-    function get_survey_responses_multiple($questionids, $type);
-    function get_survey_question_choices($questionids, $type);
-    function get_user($username);
-    function get_user_id($username);
-    function get_user_lastaccess($userids);
-    function get_users();
-    function groups_add_member($groupid, $userid);
-    function groups_create_group($courseid, $name, $description);
-    function groups_delete_group($groupid);
-    function groups_get_all_groups($courseid, $userid=0);
-    function groups_remove_member($groupid, $userid);
-    function insert_role_assignment($courseid, $userid, $roleid);
-    function prevent_local_passwords($auth);
-    function role_assignment_exists($courseid, $userid, $roleid);
-    function rollback_transaction(Exception $e);
-    function section_exists($courseid, $section);
-    function send_mail($sender, $courseid, $subject, $content, $to, $cc, $bcc);
-    function start_transaction();
-    function update_course($record);
-    function update_password($userid, $password);
+    public function get_role_assignments_by_course($courseid);
+    public function get_role_assignments_by_user($userid);
+    public function get_role_id($role);
+    public function get_survey_id($courseid, $idnumber);
+    public function get_surveys($courseid);
+    public function get_survey_question_types();
+    public function get_survey_questions($surveyid);
+    public function get_survey_responses_simple($questionids, $type);
+    public function get_survey_responses_multiple($questionids, $type);
+    public function get_survey_question_choices($questionids, $type);
+    public function get_user($username);
+    public function get_user_id($username);
+    public function get_user_lastaccess($userids);
+    public function get_users();
+    public function groups_add_member($groupid, $userid);
+    public function groups_create_group($courseid, $name, $description);
+    public function groups_delete_group($groupid);
+    public function groups_get_all_groups($courseid, $userid=0);
+    public function groups_remove_member($groupid, $userid);
+    public function insert_role_assignment($courseid, $userid, $roleid);
+    public function prevent_local_passwords($auth);
+    public function role_assignment_exists($courseid, $userid, $roleid);
+    public function rollback_transaction(Exception $e);
+    public function section_exists($courseid, $section);
+    public function send_mail($sender, $courseid, $subject, $content, $to, $cc, $bcc);
+    public function start_transaction();
+    public function update_course($record);
+    public function update_password($userid, $password);
     public function update_survey($record);
     public function update_survey_idnumber($courseid, $oldidnumber, $newidnumber);
-    function update_user($user);
-    function user_picture_url($userid);
+    public function update_user($user);
+    public function user_picture_url($userid);
 }
