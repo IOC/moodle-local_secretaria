@@ -35,7 +35,6 @@ if ($hassiteconfig) {
                                                   get_string('auth_plugin', 'local_secretaria'), '',
                                                   'manual', $options));
 
-
     $settings->add(new admin_setting_heading('secretariaws', get_string('ws', 'local_secretaria')));
 
 
