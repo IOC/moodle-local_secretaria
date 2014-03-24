@@ -40,8 +40,8 @@ if ($hassiteconfig) {
 
     $settings->add(new admin_setting_configtext('local_secretaria/courses',
                                             get_string('courses', 'local_secretaria'), '', ''));
-    $settings->add(new admin_setting_configtext('local_secretaria/secretarias',
-                                            get_string('secretarias', 'local_secretaria'), '', ''));
+    $settings->add(new admin_setting_configtext('local_secretaria/registrars',
+                                            get_string('registrars', 'local_secretaria'), '', ''));
 
     $settings->add(new admin_setting_configtext('local_secretaria/password',
                                             get_string('password', 'local_secretaria'), '', ''));

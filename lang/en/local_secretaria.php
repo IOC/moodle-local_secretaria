@@ -25,7 +25,7 @@
 
 $string['auth_plugin'] = 'Authentication plugin';
 $string['courses'] = 'Cursos';
-$string['secretarias'] = 'Secretarias';
+$string['registrars'] = 'Secretaries';
 $string['method'] = "Mètode d'autenticació";
 $string['nocontent'] = 'No data';
 $string['password'] = 'Password';
