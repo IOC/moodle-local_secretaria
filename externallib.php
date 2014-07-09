@@ -12,7 +12,7 @@ class moodle_local_secretaria_external extends external_api {
         global $CFG;
 
         require_once($CFG->dirroot . '/local/secretaria/locallib.php');
-        require_capability('local/secretaria:manage', get_context_instance(CONTEXT_SYSTEM));
+        require_capability('local/secretaria:manage', context_system::instance());
 
         $moodle = new local_secretaria_moodle_2x();
         $operations = new local_secretaria_operations($moodle);
