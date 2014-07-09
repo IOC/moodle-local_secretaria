@@ -6,7 +6,7 @@ require_once("$CFG->libdir/externallib.php");
 
 class moodle_local_secretaria_external extends external_api {
 
-    static $plugin;
+    public static $plugin;
 
     private static function execute($name, $params) {
         global $CFG;
