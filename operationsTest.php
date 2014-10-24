@@ -967,6 +967,7 @@ class GetCourseGradesTest extends OperationTest {
                 'grademin' => '1',
                 'grademax' => '10',
                 'gradepass' => '5',
+                'hidden' => 0,
             ),
             array(
                 'id' => 402,
@@ -978,6 +979,7 @@ class GetCourseGradesTest extends OperationTest {
                 'grademin' => 'E',
                 'grademax' => 'A',
                 'gradepass' => 'C',
+                'hidden' => 0,
             ),
             array(
                 'id' => 403,
@@ -989,6 +991,7 @@ class GetCourseGradesTest extends OperationTest {
                 'grademin' => '',
                 'grademax' => '',
                 'gradepass' => '',
+                'hidden' => 1,
             ),
         );
     }
@@ -1013,6 +1016,7 @@ class GetCourseGradesTest extends OperationTest {
                 'grademin' => 'E',
                 'grademax' => 'A',
                 'gradepass' => 'C',
+                'hidden' => 0,
                 'grades' => array(
                     array('user' => 'user1', 'grade' => '6.1'),
                     array('user' => 'user2', 'grade' => '6.2'),
@@ -1026,6 +1030,7 @@ class GetCourseGradesTest extends OperationTest {
                 'grademin' => '',
                 'grademax' => '',
                 'gradepass' => '',
+                'hidden' => 1,
                 'grades' => array(
                     array('user' => 'user1', 'grade' => '7.1'),
                     array('user' => 'user2', 'grade' => '7.2'),
@@ -1039,6 +1044,7 @@ class GetCourseGradesTest extends OperationTest {
                 'grademin' => '1',
                 'grademax' => '10',
                 'gradepass' => '5',
+                'hidden' => 0,
                 'grades' => array(
                     array('user' => 'user1', 'grade' => '5.1'),
                     array('user' => 'user2', 'grade' => '5.2'),
@@ -1062,6 +1068,7 @@ class GetCourseGradesTest extends OperationTest {
                 'grademin' => 'E',
                 'grademax' => 'A',
                 'gradepass' => 'C',
+                'hidden' => 0,
                 'grades' => array(),
             ),
             array(
@@ -1072,6 +1079,7 @@ class GetCourseGradesTest extends OperationTest {
                 'grademin' => '',
                 'grademax' => '',
                 'gradepass' => '',
+                'hidden' => 1,
                 'grades' => array(),
             ),
             array(
@@ -1082,6 +1090,7 @@ class GetCourseGradesTest extends OperationTest {
                 'grademin' => '1',
                 'grademax' => '10',
                 'gradepass' => '5',
+                'hidden' => 0,
                 'grades' => array(),
             ),
         )));

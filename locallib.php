@@ -280,6 +280,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
                 'grademin' => grade_format_gradevalue($gradeitem->grademin, $gradeitem),
                 'grademax' => grade_format_gradevalue($gradeitem->grademax, $gradeitem),
                 'gradepass' => grade_format_gradevalue($gradeitem->gradepass, $gradeitem),
+                'hidden' => $gradeitem->hidden,
             );
         }
 
