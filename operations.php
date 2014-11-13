@@ -880,10 +880,25 @@ class local_secretaria_operations {
 
         return $result;
     }
+
+    public function calc_formula($formula, $variables, $values) {
+        if (!$formula) {
+            throw new local_secretaria_exception("Empty formula");
+        }
+        if (count($variables) != count($values)) {
+            throw new local_secretaria_exception("Not equal number of elements in arrays");
+        }
+        $params = array_combine($variables, $values);
+        if (!$result = $this->moodle->calc_formula($formula, $params)) {
+            throw new local_secretaria_exception("Invalid formula");
+        }
+        return $result;
+    }
 }
 
 interface local_secretaria_moodle {
     public function auth_plugin();
+    public function calc_formula($formula, $params);
     public function check_password($password);
     public function commit_transaction();
     public function create_survey($courseid, $section, $name, $summary, $idnumber,

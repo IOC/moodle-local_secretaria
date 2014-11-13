@@ -316,4 +316,15 @@ $functions = array(
         'capabilities' => 'local/secretaria:manage',
         'type'         => 'read',
     ),
+
+    /* Formula */
+
+    'secretaria_calc_formula' => array(
+        'classname'    => 'moodle_local_secretaria_external',
+        'methodname'   => 'calc_formula',
+        'classpath'    => 'local/secretaria/externallib.php',
+        'description'  => 'Result from formula calculation',
+        'capabilities' => 'local/secretaria:manage',
+        'type'         => 'read',
+    ),
 );

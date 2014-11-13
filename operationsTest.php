@@ -2175,3 +2175,46 @@ class GetMailStatsTest extends OperationTest {
         $this->operations->get_mail_stats('user1', 1e10, 2e10);
     }
 }
+
+class CalcFormula extends OperationTest {
+
+    public function test() {
+        $formula = "=1+2";
+        $params = array();
+        $variables = array();
+        $values = array();
+
+        $this->moodle->shouldReceive('calc_formula')->with($formula, $params)->andReturn(3);
+        $result = $this->operations->calc_formula($formula, $variables, $values);
+        $this->assertEquals(3, $result);
+    }
+
+    public function test_empty_formula() {
+        $formula = "";
+        $variables = array();
+        $values = array();
+
+        $this->setExpectedException('local_secretaria_exception', 'Empty formula');
+        $result = $this->operations->calc_formula($formula, $variables, $values);
+    }
+
+    public function test_different_number_elements() {
+        $formula = "=a+2";
+        $variables = array('a');
+        $values = array('1', '2');
+
+        $this->setExpectedException('local_secretaria_exception', 'Not equal number of elements in arrays');
+        $result = $this->operations->calc_formula($formula, $variables, $values);
+    }
+
+    public function test_invalid_formula() {
+        $formula = "=(a+2";
+        $variables = array('a');
+        $values = array('1');
+        $params = array_combine($variables, $values);
+
+        $this->setExpectedException('local_secretaria_exception', 'Invalid formula');
+        $this->moodle->shouldReceive('calc_formula')->with($formula, $params)->andReturn(false);
+        $result = $this->operations->calc_formula($formula, $variables, $values);
+    }
+}

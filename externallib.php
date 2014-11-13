@@ -818,4 +818,27 @@ class moodle_local_secretaria_external extends external_api {
         );
     }
 
+    /* Formula */
+
+    public static function calc_formula($formula, $variables, $values) {
+        return self::execute('calc_formula', array(
+            'formula' => $formula,
+            'variables' => $variables,
+            'values' => $values,
+            ));
+    }
+
+    public static function calc_formula_parameters() {
+        return new external_function_parameters(array(
+            'formula' => self::value_required(PARAM_TEXT, 'Text formula'),
+            'variables' => self::multiple_structure(
+                self::value_optional(PARAM_TEXT, 'Names of variables')),
+            'values' => self::multiple_structure(
+                self::value_optional(PARAM_RAW, 'Values of variables')),
+        ));
+    }
+
+    public static function calc_formula_returns() {
+        return self::value_required(PARAM_RAW, 'Calculation formula result');
+    }
 }

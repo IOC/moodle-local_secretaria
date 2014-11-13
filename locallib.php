@@ -3,6 +3,7 @@
 require_once($CFG->libdir . '/enrollib.php');
 require_once($CFG->libdir . '/gradelib.php');
 require_once($CFG->libdir . '/grouplib.php');
+require_once($CFG->libdir . '/mathslib.php');
 require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/grade/querylib.php');
 require_once($CFG->dirroot . '/group/lib.php');
@@ -764,5 +765,10 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         global $CFG;
         $context = context_user::instance($userid);
         return "{$CFG->httpswwwroot}/pluginfile.php/{$context->id}/user/icon/f1";
+    }
+
+    public function calc_formula($formula, $params) {
+        $formulaparser = new calc_formula($formula, $params);
+        return $formulaparser->evaluate();
     }
 }
