@@ -249,6 +249,20 @@ class moodle_local_secretaria_external extends external_api {
         );
     }
 
+    public static function get_course_url($course) {
+        return self::execute('get_course_url', array('course' => $course));
+    }
+
+    public static function get_course_url_parameters() {
+        return new external_function_parameters(array(
+             'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+        ));
+    }
+
+    public static function get_course_url_returns() {
+        return self::value_required(PARAM_URL, 'Course url');
+    }
+
     /* Enrolments */
 
     public static function get_course_enrolments($course) {

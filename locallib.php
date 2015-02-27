@@ -211,6 +211,11 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_select('course', $select, $params, '', $fields);
     }
 
+    public function get_course_url($courseid) {
+        global $CFG;
+        return "{$CFG->wwwroot}/course/view.php?id={$courseid}";
+    }
+
     public function get_forum_stats($forumid) {
         global $DB;
         $sql = 'SELECT d.groupid, g.name AS groupname, COUNT(p.id) AS posts,'

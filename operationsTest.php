@@ -515,6 +515,23 @@ class GetCoursesTest extends OperationTest {
     }
 }
 
+class GetCourseUrlTest extends OperationTest {
+
+    public function test() {
+        $url = 'http://example.org/course/view.php?id=101';
+
+        $this->having_course_id('course1', 101);
+        $this->moodle->shouldReceive('get_course_url')->with(101)->andReturn($url);
+        $result = $this->operations->get_course_url('course1');
+        $this->assertThat($result, $this->identicalTo($url));
+    }
+
+    public function test_unknown_course() {
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+        $this->operations->get_course_url('course1');
+    }
+}
+
 /* Enrolments */
 
 class GetCcourseEnrolmentsTest extends OperationTest {

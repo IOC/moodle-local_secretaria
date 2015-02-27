@@ -220,6 +220,14 @@ class local_secretaria_operations {
         return $result;
     }
 
+    public function get_course_url($course) {
+        if (!$courseid = $this->moodle->get_course_id($course)) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        return $this->moodle->get_course_url($courseid);
+    }
+
     /* Enrolments */
 
     public function get_course_enrolments($course) {
@@ -911,6 +919,7 @@ interface local_secretaria_moodle {
     public function get_assignments($courseid);
     public function get_course($shortname);
     public function get_course_id($shortname);
+    public function get_course_url($courseid);
     public function get_courses();
     public function get_course_grade($userid, $courseid);
     public function get_forum_stats($forumid);

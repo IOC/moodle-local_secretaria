@@ -96,6 +96,15 @@ $functions = array(
         'type'         => 'read',
     ),
 
+    'secretaria_get_course_url' => array(
+        'classname'    => 'moodle_local_secretaria_external',
+        'methodname'   => 'get_course_url',
+        'classpath'    => 'local/secretaria/externallib.php',
+        'description'  => 'Get course url',
+        'capabilities' => 'local/secretaria:manage',
+        'type'         => 'read',
+    ),
+
     /* Enrolments */
 
     'secretaria_get_course_enrolments' => array(
