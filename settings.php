@@ -50,4 +50,8 @@ if ($hassiteconfig) {
                                             get_string('method', 'local_secretaria'), '', ''));
 
     $ADMIN->add('localplugins', $settings);
+
+    $ADMIN->add('server', new admin_externalpage('local_secretaria/mailcheck',
+                                            get_string('mailcheck', 'local_secretaria'),
+                                            new moodle_url('/local/secretaria/mailcheck.php')));
 }
