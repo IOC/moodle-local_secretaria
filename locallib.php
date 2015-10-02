@@ -164,12 +164,14 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
             . ' LEFT JOIN {files} f ON f.itemid = s.id'
             . ' AND f.contextid = :contextid AND f.filename != :filename'
             . ' WHERE s.assignment = :assignmentid'
+            . ' AND s.status != :status'
             . ' GROUP BY user, grader, timesubmitted, timegraded';
 
         return $DB->get_records_sql($sql, array(
             'contextid' => $context->id,
             'filename' => '.',
             'assignmentid' => $assignmentid,
+            'status' => 'new',
         ));
     }
 
