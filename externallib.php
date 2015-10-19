@@ -169,6 +169,20 @@ class moodle_local_secretaria_external extends external_api {
         );
     }
 
+    public static function reset_password($username) {
+        return self::execute('reset_password', array('username' => $username));
+    }
+
+    public static function reset_password_parameters() {
+        return new external_function_parameters(
+            array('username' => self::value_required(PARAM_USERNAME, 'Username'))
+        );
+    }
+
+    public static function reset_password_returns() {
+        return null;
+    }
+
     /* Courses */
 
     public static function has_course($course) {

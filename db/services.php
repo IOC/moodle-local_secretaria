@@ -58,6 +58,15 @@ $functions = array(
         'type'         => 'read',
     ),
 
+    'secretaria_reset_password' => array(
+        'classname'    => 'moodle_local_secretaria_external',
+        'methodname'   => 'reset_password',
+        'classpath'    => 'local/secretaria/externallib.php',
+        'description'  => 'Reset user password',
+        'capabilities' => 'local/secretaria:manage',
+        'type'         => 'write',
+    ),
+
     /* Courses */
 
     'secretaria_has_course' => array(

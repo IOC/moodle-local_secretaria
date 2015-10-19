@@ -8,6 +8,7 @@ require_once($CFG->dirroot . '/course/lib.php');
 require_once($CFG->dirroot . '/grade/querylib.php');
 require_once($CFG->dirroot . '/group/lib.php');
 require_once($CFG->dirroot . '/user/lib.php');
+require_once($CFG->dirroot . '/login/lib.php');
 require_once($CFG->dirroot . '/local/secretaria/operations.php');
 
 class local_secretaria_moodle_2x implements local_secretaria_moodle {
@@ -620,6 +621,21 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $params = array($CFG->mnet_localhost_id, false, 'guest');
         $fields = 'id, username';
         return $DB->get_records_select('user', $select, $params, '', $fields);
+    }
+
+    public function reset_password($user) {
+        global $CFG, $DB;
+
+        if (!empty($CFG->loginhttps)) {
+            $CFG->httpswwwroot = str_replace('http:', 'https:', $CFG->wwwroot);
+        }
+
+        $resetinprogress = $DB->get_record('user_password_resets', array('userid' => $user->id));
+        if (!empty($resetinprogress)) {
+            $DB->delete_records('user_password_resets', array('id' => $resetinprogress->id));
+        }
+        $resetrecord = core_login_generate_password_reset($user);
+        send_password_change_confirmation_email($user, $resetrecord);
     }
 
     public function groups_add_member($groupid, $userid) {

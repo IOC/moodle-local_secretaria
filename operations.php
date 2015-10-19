@@ -146,6 +146,13 @@ class local_secretaria_operations {
         return $result;
     }
 
+    public function reset_password($username) {
+        if (!$user = $this->moodle->get_user($username)) {
+            throw new local_secretaria_exception('Unknown user');
+        }
+        $this->moodle->reset_password($user);
+    }
+
     /* Courses */
 
     public function has_course($shortname) {
@@ -953,6 +960,7 @@ interface local_secretaria_moodle {
     public function groups_remove_member($groupid, $userid);
     public function insert_role_assignment($courseid, $userid, $roleid);
     public function prevent_local_passwords($auth);
+    public function reset_password($user);
     public function role_assignment_exists($courseid, $userid, $roleid);
     public function rollback_transaction(Exception $e);
     public function section_exists($courseid, $section);
