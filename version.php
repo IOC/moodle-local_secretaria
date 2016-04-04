@@ -16,5 +16,5 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2015101900;
+$plugin->version = 2016040400;
 $plugin->component = 'local_secretaria';

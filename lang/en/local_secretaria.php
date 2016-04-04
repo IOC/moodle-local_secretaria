@@ -34,3 +34,4 @@ $string['pluginname'] = 'Secretaria';
 $string['pluginname_desc'] = 'Secretaria services.';
 $string['secretaria:manage'] = 'Manage secretaria services';
 $string['ws'] = 'Web Service';
+$string['notpermittedtojumpas'] = 'No podeu entrar a la Secretaria mentre tingueu iniciada la sessió com un altre usuari.';
