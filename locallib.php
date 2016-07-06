@@ -107,7 +107,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $id = $DB->insert_record('user', $record);
 
         context_user::instance($id);
-        events_trigger('user_created', $DB->get_record('user', array('id' => $id)));
+        \core\event\user_created::create_from_userid($id)->trigger();
     }
 
     public function delete_user($userid) {
