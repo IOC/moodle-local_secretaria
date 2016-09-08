@@ -14,8 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
+function local_secretaria_extend_navigation($root) {
 
-$plugin->version = 2016090900;
-$plugin->requires = 2014050900;
-$plugin->component = 'local_secretaria';
+    if (has_capability('moodle/category:viewhiddencategories', context_system::instance())) {
+        $node = navigation_node::create(get_string('allcategories'), new moodle_url('/'), navigation_node::TYPE_SETTING);
+        $node->action->param('redirect', '0');
+        $root->add_node($node, 'home');
+    }
+}
