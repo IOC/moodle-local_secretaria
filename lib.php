@@ -16,6 +16,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version = 2016090900;
-$plugin->requires = 2014050900;
-$plugin->component = 'local_secretaria';
+require_once($CFG->libdir . '/coursecatlib.php');
+
+function local_secretaria_extend_navigation($root) {
+    $categories = coursecat::make_categories_list('moodle/category:manage');
+    if (!empty($categories)) {
+        $node = navigation_node::create(get_string('allcategories'), new moodle_url('/'), navigation_node::TYPE_SETTING);
+        $node->action->param('redirect', '0');
+        $root->add_node($node, 'home');
+    }
+}
