@@ -155,17 +155,28 @@ class moodle_local_secretaria_external extends external_api {
         return null;
     }
 
-    public static function get_users() {
-        return self::execute('get_users', array());
+    public static function get_users($usernames) {
+        return self::execute('get_users', array('usernames' => $usernames));
     }
 
     public static function get_users_parameters() {
-        return new external_function_parameters(array());
+        return new external_function_parameters(array(
+            'usernames' => self::multiple_structure(
+                self::value_required(PARAM_USERNAME, 'Username')
+            ),
+        ));
     }
 
     public static function get_users_returns() {
         return self::multiple_structure(
-            self::value_required(PARAM_USERNAME, 'Username')
+            new external_single_structure(array(
+                'username' => self::value_required(PARAM_USERNAME, 'Username'),
+                'firstname' => self::value_required(PARAM_NOTAGS, 'First name'),
+                'lastname' => self::value_required(PARAM_NOTAGS, 'Last name'),
+                'email' => self::value_required(PARAM_EMAIL, 'Email address'),
+                'picture' => self::value_null(PARAM_LOCALURL, 'Picture URL'),
+                'lastaccess' => self::value_required(PARAM_INT, 'Last access'),
+            ))
         );
     }
 

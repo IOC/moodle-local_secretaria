@@ -347,23 +347,109 @@ class GetUsersTest extends OperationTest {
 
     public function test() {
         $records = array(
-            (object) array('id' => 101, 'username' => 'user1'),
-            (object) array('id' => 102, 'username' => 'user2'),
-            (object) array('id' => 103, 'username' => 'user3'),
+            (object) array(
+                    'id' => 101,
+                    'username' => 'user1',
+                    'firstname' => 'User',
+                    'lastname' => '1',
+                    'email' => 'user1@example.org',
+                    'picture' => '1',
+                    'lastaccess' => '1234567890'
+            ),
+            (object) array(
+                    'id' => 102,
+                    'username' => 'user2',
+                    'firstname' => 'User',
+                    'lastname' => '2',
+                    'email' => 'user2@example.org',
+                    'picture' => '2',
+                    'lastaccess' => '1234567890'
+            ),
+            (object) array(
+                    'id' => 103,
+                    'username' => 'user3',
+                    'firstname' => 'User',
+                    'lastname' => '3',
+                    'email' => 'user3@example.org',
+                    'picture' => '3',
+                    'lastaccess' => '1234567890'
+            ),
         );
-        $this->moodle->shouldReceive('get_users')->with()->andReturn($records);
+        $users = array(
+            'user1',
+            'user2',
+            'user3',
+        );
+        $this->moodle->shouldReceive('get_users')->with($users)->andReturn($records);
+        $this->moodle->shouldReceive('user_picture_url')->with(101)->andReturn('http://example.org/user/pix.php/101/f1.jpg');
+        $this->moodle->shouldReceive('user_picture_url')->with(102)->andReturn('http://example.org/user/pix.php/102/f1.jpg');
+        $this->moodle->shouldReceive('user_picture_url')->with(103)->andReturn('http://example.org/user/pix.php/103/f1.jpg');
 
-        $result = $this->operations->get_users();
+        $result = $this->operations->get_users($users);
 
         $this->assertThat($result, $this->identicalTo(
-            array('user1', 'user2', 'user3')
+                array(
+                    array(
+                        'username' => 'user1',
+                        'firstname' => 'User',
+                        'lastname' => '1',
+                        'email' => 'user1@example.org',
+                        'picture' => 'http://example.org/user/pix.php/101/f1.jpg',
+                        'lastaccess' => '1234567890'
+                    ),
+                    array(
+                        'username' => 'user2',
+                        'firstname' => 'User',
+                        'lastname' => '2',
+                        'email' => 'user2@example.org',
+                        'picture' => 'http://example.org/user/pix.php/102/f1.jpg',
+                        'lastaccess' => '1234567890'
+                    ),
+                    array(
+                        'username' => 'user3',
+                        'firstname' => 'User',
+                        'lastname' => '3',
+                        'email' => 'user3@example.org',
+                        'picture' => 'http://example.org/user/pix.php/103/f1.jpg',
+                        'lastaccess' => '1234567890'
+                    ),
+                )
         ));
     }
 
     public function test_no_users() {
-        $this->moodle->shouldReceive('get_users')->with()->andReturn(false);
+        $users = array(
+                    (object) array(
+                        'id' => 101,
+                        'username' => 'user1',
+                        'firstname' => 'User',
+                        'lastname' => '1',
+                        'email' => 'user1@example.org',
+                        'picture' => '1',
+                        'lastaccess' => '1234567890'
+                    ),
+                    (object) array(
+                        'id' => 101,
+                        'username' => 'user2',
+                        'firstname' => 'User',
+                        'lastname' => '2',
+                        'email' => 'user2@example.org',
+                        'picture' => '2',
+                        'lastaccess' => '1234567890'
+                    ),
+                    (object) array(
+                        'id' => 101,
+                        'username' => 'user3',
+                        'firstname' => 'User',
+                        'lastname' => '3',
+                        'email' => 'user3@example.org',
+                        'picture' => '3',
+                        'lastaccess' => '1234567890'
+                    ),
+        );
+        $this->moodle->shouldReceive('get_users')->with($users)->andReturn(false);
 
-        $result = $this->operations->get_users();
+        $result = $this->operations->get_users($users);
 
         $this->assertThat($result, $this->identicalTo(array()));
     }
