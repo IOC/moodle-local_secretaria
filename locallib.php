@@ -615,11 +615,20 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
          return $userids ? $DB->get_records_sql($sql) : false;
     }
 
-    public function get_users() {
+    public function get_users($usernames) {
         global $CFG, $DB;
+
+        $usersql = '';
+        if (!empty($usernames)) {
+            list($usersql, $userparams) = $DB->get_in_or_equal($usernames);
+        }
         $select = 'mnethostid = ? AND deleted = ? AND username <> ?';
         $params = array($CFG->mnet_localhost_id, false, 'guest');
-        $fields = 'id, username';
+        if (!empty($usersql)) {
+            $select .= ' AND username ' . $usersql;
+            $params = array_merge($params, $userparams);
+        }
+        $fields = 'id, username, firstname, lastname, email, picture, lastaccess';
         return $DB->get_records_select('user', $select, $params, '', $fields);
     }
 

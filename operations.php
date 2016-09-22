@@ -136,11 +136,19 @@ class local_secretaria_operations {
         $this->moodle->commit_transaction();
     }
 
-    public function get_users() {
+    public function get_users($usernames) {
         $result = array();
-        if ($records = $this->moodle->get_users()) {
+        if ($records = $this->moodle->get_users($usernames)) {
             foreach ($records as $record) {
-                $result[] = $record->username;
+                $pixurl = $this->moodle->user_picture_url($record->id);
+                $result[] = array(
+                    'username' => $record->username,
+                    'firstname' => $record->firstname,
+                    'lastname' => $record->lastname,
+                    'email' => $record->email,
+                    'picture' => $record->picture ? $pixurl : null,
+                    'lastaccess' => $record->lastaccess,
+                );
             }
         }
         return $result;
@@ -952,7 +960,7 @@ interface local_secretaria_moodle {
     public function get_user($username);
     public function get_user_id($username);
     public function get_user_lastaccess($userids);
-    public function get_users();
+    public function get_users($usernames);
     public function groups_add_member($groupid, $userid);
     public function groups_create_group($courseid, $name, $description);
     public function groups_delete_group($groupid);
