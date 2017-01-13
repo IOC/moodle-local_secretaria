@@ -801,6 +801,29 @@ class moodle_local_secretaria_external extends external_api {
         return null;
     }
 
+    /* Workshop */
+
+    public static function get_workshops($course) {
+        return self::execute('get_workshops', array('course' => $course));
+    }
+
+    public static function get_workshops_parameters() {
+        return new external_function_parameters(array(
+            'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
+        ));
+    }
+
+    public static function get_workshops_returns() {
+        return self::multiple_structure(
+            new external_single_structure(array(
+                'idnumber' => self::value_required(PARAM_RAW, 'Workshop idnumber'),
+                'name' => self::value_required(PARAM_TEXT, 'Workshop name'),
+                'opentime' => self::value_null(PARAM_INT, 'Open time'),
+                'closetime' => self::value_null(PARAM_INT, 'Close time'),
+            ))
+        );
+    }
+
     /* Mail */
 
     public static function send_mail($message) {

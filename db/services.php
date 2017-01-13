@@ -315,6 +315,17 @@ $functions = array(
         'type'         => 'write',
     ),
 
+    /* Workshops */
+
+    'secretaria_get_workshops' => array(
+        'classname'    => 'moodle_local_secretaria_external',
+        'methodname'   => 'get_workshops',
+        'classpath'    => 'local/secretaria/externallib.php',
+        'description'  => 'Get workshops',
+        'capabilities' => 'local/secretaria:manage',
+        'type'         => 'read',
+    ),
+
     /* Mail */
 
     'secretaria_send_mail' => array(

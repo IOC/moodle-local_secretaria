@@ -187,6 +187,17 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         return $DB->get_records_sql($sql, array($courseid, 'assign', $courseid));
     }
 
+    public function get_workshops($courseid) {
+        global $DB;
+        $sql = 'SELECT w.id, cm.idnumber, w.name,'
+            . ' w.submissionstart AS opentime, w.submissionend AS closetime'
+            . ' FROM {course_modules} cm '
+            . ' JOIN {modules} m ON m.id = cm.module'
+            . ' JOIN {workshop} w ON w.id = cm.instance'
+            . ' WHERE cm.course = ? AND m.name = ? AND w.course = ?';
+        return $DB->get_records_sql($sql, array($courseid, 'workshop', $courseid));
+    }
+
     public function get_course($shortname) {
         global $DB;
         return $DB->get_record('course', array('shortname' => $shortname),
