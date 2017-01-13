@@ -826,6 +826,29 @@ class local_secretaria_operations {
         }
     }
 
+    /* Workshops */
+
+    public function get_workshops($course) {
+        if (!$courseid = $this->moodle->get_course_id($course)) {
+            throw new local_secretaria_exception('Unknown course');
+        }
+
+        $result = array();
+
+        if ($records = $this->moodle->get_workshops($courseid)) {
+            foreach ($records as $record) {
+                $result[] = array(
+                    'idnumber' => $record->idnumber ?: '',
+                    'name' => $record->name,
+                    'opentime' => (int) $record->opentime ?: null,
+                    'closetime' => (int) $record->closetime ?: null,
+                );
+            }
+        }
+
+        return $result;
+    }
+
     /* Mail */
 
     public function send_mail($message) {

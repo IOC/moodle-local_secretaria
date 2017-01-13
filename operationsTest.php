@@ -2158,6 +2158,61 @@ class UpdateSurveyTest extends OperationTest {
     }
 }
 
+/* Workshops */
+
+class GetWorkshopsTest extends OperationTest {
+
+    public function test() {
+        $this->having_course_id('course1', 101);
+        $records = array(
+            (object) array(
+                'id' => '201',
+                'name' => 'Workshop 1',
+                'idnumber' => 'W1',
+                'opentime' => '1234567891',
+                'closetime' => '1234567892',
+            ),
+            (object) array(
+                'id' => '202',
+                'name' => 'Workshop 2',
+                'idnumber' => 'W2',
+                'opentime' => '0',
+                'closetime' => '1234567893',
+            ),
+            (object) array(
+                'id' => '203',
+                'name' => 'Workshop 3',
+                'idnumber' => null,
+                'opentime' => '1234567894',
+                'closetime' => '0',
+            ),
+        );
+        $this->moodle->shouldReceive('get_workshops')->with(101)->andReturn($records);
+
+        $result = $this->operations->get_workshops('course1');
+
+        $this->assertThat($result, $this->identicalTo(array(
+            array('idnumber' => 'W1',
+                  'name' => 'Workshop 1',
+                  'opentime' => 1234567891,
+                  'closetime' => 1234567892),
+            array('idnumber' => 'W2',
+                  'name' => 'Workshop 2',
+                  'opentime' => null,
+                  'closetime' => 1234567893),
+            array('idnumber' => '',
+                  'name' => 'Workshop 3',
+                  'opentime' => 1234567894,
+                  'closetime' => null),
+        )));
+    }
+
+    public function test_unknown_course() {
+        $this->setExpectedException('local_secretaria_exception', 'Unknown course');
+        $this->operations->get_workshops('course1');
+    }
+}
+
 /* Mail */
 
 class SendMailTest extends OperationTest {
