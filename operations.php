@@ -53,7 +53,7 @@ class local_secretaria_operations {
 
     public function create_user($properties) {
         if (!$properties['username'] or !$properties['firstname'] or !$properties['lastname']) {
-            throw new local_secretaria_exception('Invalid parameters');
+            throw new local_secretaria_exception('Invalid username or firstname or lastname');
         }
 
         if ($this->moodle->get_user_id($properties['username'])) {
@@ -90,7 +90,7 @@ class local_secretaria_operations {
 
         if (isset($properties['username'])) {
             if (empty($properties['username'])) {
-                throw new local_secretaria_exception('Invalid parameters');
+                throw new local_secretaria_exception('Empty username');
             }
             $newuserid = $this->moodle->get_user_id($properties['username']);
             if ($newuserid and $newuserid !== $user->id) {
@@ -109,11 +109,11 @@ class local_secretaria_operations {
         }
 
         if (isset($properties['firstname']) and empty($properties['firstname'])) {
-            throw new local_secretaria_exception('Invalid parameters');
+            throw new local_secretaria_exception('Empty firstname');
         }
 
         if (isset($properties['lastname']) and empty($properties['lastname'])) {
-            throw new local_secretaria_exception('Invalid parameters');
+            throw new local_secretaria_exception('Empty lastname');
         }
 
         $this->moodle->start_transaction();
@@ -195,7 +195,7 @@ class local_secretaria_operations {
 
         if (isset($properties['shortname'])) {
             if (empty($properties['shortname'])) {
-                throw new local_secretaria_exception('Invalid parameters');
+                throw new local_secretaria_exception('Empty shortname');
             }
             $otherid = $this->moodle->get_course_id($properties['shortname']);
             if ($otherid and $otherid != $courseid) {
@@ -206,7 +206,7 @@ class local_secretaria_operations {
 
         if (isset($properties['fullname'])) {
             if (empty($properties['fullname'])) {
-                throw new local_secretaria_exception('Invalid parameters');
+                throw new local_secretaria_exception('Empty fullname');
             }
             $record->fullname = $properties['fullname'];
         }
@@ -339,7 +339,7 @@ class local_secretaria_operations {
             throw new local_secretaria_exception('Unknown course');
         }
         if (empty($name)) {
-            throw new local_secretaria_exception('Invalid parameters');
+            throw new local_secretaria_exception('Empty group name');
         }
         if ($this->moodle->get_group_id($courseid, $name)) {
             throw new local_secretaria_exception('Duplicate group');
@@ -527,7 +527,7 @@ class local_secretaria_operations {
 
     public function get_assignment_submissions($course, $idnumber) {
         if (!$idnumber) {
-            throw new local_secretaria_exception('Invalid parameters');
+            throw new local_secretaria_exception('Invalid idnumber');
         }
 
         if (!$courseid = $this->moodle->get_course_id($course)) {
@@ -750,7 +750,7 @@ class local_secretaria_operations {
             empty($properties['summary']) or
             empty($properties['template']['course']) or
             empty($properties['template']['idnumber'])) {
-            throw new local_secretaria_exception('Invalid parameters');
+            throw new local_secretaria_exception('Empty idnumber or name or summary or template/course or template/idnumber');
         }
 
         if (!$courseid = $this->moodle->get_course_id($properties['course'])) {
@@ -806,7 +806,7 @@ class local_secretaria_operations {
 
         if (isset($properties['idnumber'])) {
             if (empty($properties['idnumber'])) {
-                throw new local_secretaria_exception('Invalid parameters');
+                throw new local_secretaria_exception('Empty idnumber');
             }
             if ($this->moodle->get_questionnaire_id($courseid, $properties['idnumber'])) {
                 throw new local_secretaria_exception('Duplicated idnumber');
@@ -816,7 +816,7 @@ class local_secretaria_operations {
 
         if (isset($properties['name'])) {
             if (empty($properties['name'])) {
-                throw new local_secretaria_exception('Invalid parameters');
+                throw new local_secretaria_exception('Empty name');
             }
             $record = new stdClass;
             $record->id = $questionnaireid;
@@ -864,7 +864,7 @@ class local_secretaria_operations {
             $usernames = array_merge($usernames, $message['bcc']);
         }
         if (!$message['to'] or count($usernames) != count(array_unique($usernames))) {
-            throw new local_secretaria_exception('Invalid parameters');
+            throw new local_secretaria_exception('Invalid recipient or duplicated recipient');
         }
 
         $sender = false;
