@@ -173,21 +173,21 @@ class CreateUserTest extends OperationTest {
 
     public function test_blank_username() {
         $this->properties['username'] = '';
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Invalid username or firstname or lastname');
 
         $this->operations->create_user($this->properties);
     }
 
     public function test_blank_firstname() {
         $this->properties['firstname'] = '';
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Invalid username or firstname or lastname');
 
         $this->operations->create_user($this->properties);
     }
 
     public function test_blank_lastname() {
         $this->properties['lastname'] = '';
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Invalid username or firstname or lastname');
 
         $this->operations->create_user($this->properties);
     }
@@ -246,7 +246,7 @@ class UpdateUserTest extends OperationTest {
     public function test_blank_username() {
         $this->having_user('user1', array('id' => 201));
         $this->having_user_id('user1', 201);
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty username');
 
         $this->operations->update_user('user1', array('username' => ''));
     }
@@ -301,14 +301,14 @@ class UpdateUserTest extends OperationTest {
 
     public function test_blank_firstname() {
         $this->having_user('user1', array('id' => 201));
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty firstname');
 
         $this->operations->update_user('user1', array('firstname' => ''));
     }
 
     public function test_blank_lastname() {
         $this->having_user('user1', array('id' => 201));
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty lastname');
 
         $this->operations->update_user('user1', array('lastname' => ''));
     }
@@ -561,14 +561,14 @@ class UpdateCourseTest extends OperationTest {
 
     public function test_blank_shortname() {
         $this->having_course_id('course1', 101);
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty shortname');
 
         $this->operations->update_course('course1', array('shortname' => ''));
     }
 
     public function test_blank_fullname() {
         $this->having_course_id('course1', 101);
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty fullname');
 
         $this->operations->update_course('course1', array('fullname' => ''));
     }
@@ -860,7 +860,7 @@ class CreateGroupTest extends OperationTest {
 
     public function test_blank_name() {
         $this->having_course_id('course1', 101);
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty group name');
 
         $this->operations->create_group('course1', '', 'Group 1');
     }
@@ -1700,7 +1700,7 @@ class GetSurveysTest extends OperationTest {
     }
 
     public function test_blank_idnumber() {
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Invalid idnumber');
         $this->operations->get_assignment_submissions('course1', '');
     }
 
@@ -1924,7 +1924,7 @@ class GetSurveysDataTest extends OperationTest {
     }
 
     public function test_blank_idnumber() {
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Invalid idnumber');
         $this->operations->get_assignment_submissions('course1', '');
     }
 
@@ -2010,7 +2010,7 @@ class CreateSurveyTest extends OperationTest {
         $this->properties['idnumber'] = '';
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty idnumber or name or summary or template/course or template/idnumber');
 
         $this->operations->create_survey($this->properties);
     }
@@ -2030,7 +2030,7 @@ class CreateSurveyTest extends OperationTest {
         $this->properties['name'] = '';
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty idnumber or name or summary or template/course or template/idnumber');
 
         $this->operations->create_survey($this->properties);
     }
@@ -2039,7 +2039,7 @@ class CreateSurveyTest extends OperationTest {
         $this->properties['summary'] = '';
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty idnumber or name or summary or template/course or template/idnumber');
 
         $this->operations->create_survey($this->properties);
     }
@@ -2048,7 +2048,7 @@ class CreateSurveyTest extends OperationTest {
         $this->properties['template']['course'] = '';
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty idnumber or name or summary or template/course or template/idnumber');
 
         $this->operations->create_survey($this->properties);
     }
@@ -2058,7 +2058,7 @@ class CreateSurveyTest extends OperationTest {
         $this->having_course_id('course1', 101);
         $this->having_course_id('course2', 102);
         $this->moodle->shouldReceive('section_exists')->with(102, 7)->andReturn(true);
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty idnumber or name or summary or template/course or template/idnumber');
 
         $this->operations->create_survey($this->properties);
     }
@@ -2143,7 +2143,7 @@ class UpdateSurveyTest extends OperationTest {
     public function test_blank_idnumber() {
         $this->having_course_id('course1', 101);
         $this->moodle->shouldReceive('get_questionnaire_id')->with(101, 'S1')->andReturn(201);
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty idnumber');
 
         $this->operations->update_survey('course1', 'S1', array('idnumber' => ''));
     }
@@ -2151,7 +2151,7 @@ class UpdateSurveyTest extends OperationTest {
     public function test_blank_name() {
         $this->having_course_id('course1', 101);
         $this->moodle->shouldReceive('get_questionnaire_id')->with(101, 'S1')->andReturn(201);
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Empty name');
 
         $this->operations->update_survey('course1', 'S1', array('name' => ''));
     }
@@ -2260,7 +2260,7 @@ class SendMailTest extends OperationTest {
         $this->having_user_id('user1', 301);
         $this->having_user_id('user2', 302);
 
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Invalid recipient or duplicated recipient');
 
         $this->operations->send_mail($this->message);
     }
@@ -2270,7 +2270,7 @@ class SendMailTest extends OperationTest {
         $this->having_course_id('course1', 201);
         $this->having_user_id('user1', 301);
 
-        $this->setExpectedException('local_secretaria_exception', 'Invalid parameters');
+        $this->setExpectedException('local_secretaria_exception', 'Invalid recipient or duplicated recipient');
 
         $this->operations->send_mail($this->message);
     }
