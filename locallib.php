@@ -91,7 +91,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $record = new stdClass;
         $record->auth = $auth;
         $record->mnethostid = $CFG->mnet_localhost_id;
-        $record->username = $username;
+        $record->username = core_text::strtolower($username);
         $record->password = $password ? hash_internal_user_password($password) : 'not cached';
         $record->firstname = $firstname;
         $record->lastname = $lastname;
@@ -249,6 +249,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $usernameparams = array();
 
         if (!empty($users)) {
+            $users = array_map('core_text::strtolower', $users);
             list($sqlusernames, $usernameparams) = $DB->get_in_or_equal($users, SQL_PARAMS_NAMED, 'username');
             $sqlin = ' AND u.username ' . $sqlusernames;
         }
@@ -597,7 +598,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
          $conditions = array(
              'mnethostid' => $CFG->mnet_localhost_id,
-             'username' => $username,
+             'username' => core_text::strtolower($username),
              'deleted' => 0,
          );
 
@@ -610,7 +611,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
          global $CFG, $DB;
          return $DB->get_field('user', 'id', array(
              'mnethostid' => $CFG->mnet_localhost_id,
-             'username' => $username,
+             'username' => core_text::strtolower($username),
              'deleted' => 0,
          ));
     }
@@ -631,6 +632,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
         $usersql = '';
         if (!empty($usernames)) {
+            $usernames = array_map('core_text::strtolower', $usernames);
             list($usersql, $userparams) = $DB->get_in_or_equal($usernames);
         }
         $select = 'mnethostid = ? AND deleted = ? AND username <> ?';

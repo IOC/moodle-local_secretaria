@@ -35,7 +35,7 @@ class local_secretaria_operations {
             if (!$userid = $this->moodle->get_user_id($username)) {
                 throw new local_secretaria_exception('Unknown user');
             }
-            $usernames[$userid] = $username;
+            $usernames[$userid] = core_text::strtolower($username);
         }
 
         $result = array();
@@ -448,7 +448,7 @@ class local_secretaria_operations {
             if (!$userid = $this->moodle->get_user_id($user)) {
                 throw new local_secretaria_exception('Unknown user');
             }
-            $usernames[$userid] = $user;
+            $usernames[$userid] = core_text::strtolower($user);
         }
         $userids = array_keys($usernames);
 
