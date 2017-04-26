@@ -1103,9 +1103,9 @@ class GetCourseGradesTest extends OperationTest {
         $this->having_user_id('user1', 301);
         $this->having_user_id('user2', 302);
         $this->moodle->shouldReceive('get_grade_items')->with(101)->andReturn($this->items);
-        $this->moodle->shouldReceive('get_grades')->with(401, array(301, 302))->andReturn(array(301 => '5.1',  302 => '5.2'));
-        $this->moodle->shouldReceive('get_grades')->with(402, array(301, 302))->andReturn(array(301 => '6.1', 302 => '6.2'));
-        $this->moodle->shouldReceive('get_grades')->with(403, array(301, 302))->andReturn(array(301 => '7.1', 302 => '7.2'));
+        $this->moodle->shouldReceive('get_grades')->with(401, array(301, 302))->andReturn(array(301 => array('5.1', 'teacher1'),  302 => array('5.2', 'teacher1')));
+        $this->moodle->shouldReceive('get_grades')->with(402, array(301, 302))->andReturn(array(301 => array('6.1', 'teacher2'), 302 => array('6.2', 'teacher2')));
+        $this->moodle->shouldReceive('get_grades')->with(403, array(301, 302))->andReturn(array(301 => array('7.1', 'teacher3'), 302 => array('7.2', 'teacher3')));
 
         $result = $this->operations->get_course_grades('course1', array('user1', 'user2'));
 
@@ -1120,8 +1120,8 @@ class GetCourseGradesTest extends OperationTest {
                 'gradepass' => 'C',
                 'hidden' => 0,
                 'grades' => array(
-                    array('user' => 'user1', 'grade' => '6.1'),
-                    array('user' => 'user2', 'grade' => '6.2'),
+                    array('user' => 'user1', 'grade' => '6.1', 'grader' => 'teacher2'),
+                    array('user' => 'user2', 'grade' => '6.2', 'grader' => 'teacher2'),
                 ),
             ),
             array(
@@ -1134,8 +1134,8 @@ class GetCourseGradesTest extends OperationTest {
                 'gradepass' => '',
                 'hidden' => 1,
                 'grades' => array(
-                    array('user' => 'user1', 'grade' => '7.1'),
-                    array('user' => 'user2', 'grade' => '7.2'),
+                    array('user' => 'user1', 'grade' => '7.1', 'grader' => 'teacher3'),
+                    array('user' => 'user2', 'grade' => '7.2', 'grader' => 'teacher3'),
                 ),
             ),
             array(
@@ -1148,8 +1148,8 @@ class GetCourseGradesTest extends OperationTest {
                 'gradepass' => '5',
                 'hidden' => 0,
                 'grades' => array(
-                    array('user' => 'user1', 'grade' => '5.1'),
-                    array('user' => 'user2', 'grade' => '5.2'),
+                    array('user' => 'user1', 'grade' => '5.1', 'grader' => 'teacher1'),
+                    array('user' => 'user2', 'grade' => '5.2', 'grader' => 'teacher1'),
                 ),
             ),
         )));

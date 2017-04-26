@@ -339,6 +339,7 @@ class moodle_local_secretaria_external extends external_api {
                     'course' => self::value_required(PARAM_TEXT, 'Course shortname'),
                     'user' => self::value_required(PARAM_USERNAME_IOC, 'Username'),
                     'role' => self::value_required(PARAM_ALPHANUMEXT, 'Role shortname'),
+                    'recovergrades' => self::value_optional(PARAM_BOOL, 'Recover grades'),
                 ))
             ),
         ));

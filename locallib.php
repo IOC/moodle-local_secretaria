@@ -686,13 +686,13 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         }
     }
 
-    public function insert_role_assignment($courseid, $userid, $roleid) {
+    public function insert_role_assignment($courseid, $userid, $roleid, $recovergrades = false) {
          global $DB;
 
          $plugin = enrol_get_plugin('manual');
          $conditions = array('enrol' => 'manual', 'courseid' => $courseid);
          $enrol = $DB->get_record('enrol', $conditions, '*', MUST_EXIST);
-         $plugin->enrol_user($enrol, $userid, $roleid, 0, 0, null, false);
+         $plugin->enrol_user($enrol, $userid, $roleid, 0, 0, null, $recovergrades);
     }
 
     public function make_timestamp($year, $month, $day, $hour=0, $minute=0, $second=0) {

@@ -289,7 +289,8 @@ class local_secretaria_operations {
                 throw new local_secretaria_exception('Unknown role');
             }
             if (!$this->moodle->role_assignment_exists($courseid, $userid, $roleid)) {
-                $this->moodle->insert_role_assignment($courseid, $userid, $roleid);
+                $recovergrades = isset($enrolment['recovergrades']) ? $enrolment['recovergrades'] : false;
+                $this->moodle->insert_role_assignment($courseid, $userid, $roleid, $recovergrades);
             }
         }
 
@@ -989,7 +990,7 @@ interface local_secretaria_moodle {
     public function groups_delete_group($groupid);
     public function groups_get_all_groups($courseid, $userid=0);
     public function groups_remove_member($groupid, $userid);
-    public function insert_role_assignment($courseid, $userid, $roleid);
+    public function insert_role_assignment($courseid, $userid, $roleid, $recovergrades=false);
     public function prevent_local_passwords($auth);
     public function reset_password($user);
     public function role_assignment_exists($courseid, $userid, $roleid);
