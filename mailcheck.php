@@ -58,7 +58,7 @@ if (!empty($CFG->local_xtecmail_app)) {
         try {
             $xm->send($mail['to'], array(), array(), $mail['from'], $mail['subject'],
                       $mail['body'], $mail['contenttype'], array());
-            $output = html_writer::tag('div', get_string('mailsent', 'message'));
+            $output = html_writer::tag('div', get_string('mailsent', 'local_secretaria'));
         } catch (xtecmailerror $e) {
             $output = html_writer::tag('div', $e->getMessage());
         }

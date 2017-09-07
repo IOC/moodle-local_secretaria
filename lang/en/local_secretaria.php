@@ -26,6 +26,7 @@
 $string['auth_plugin'] = 'Authentication plugin';
 $string['courses'] = 'Cursos';
 $string['registrars'] = 'Secretaries';
+$string['mail_sent'] = 'S\'ha enviat un correu a l\'adreça indicada';
 $string['mailcheck'] = 'Estat correu';
 $string['method'] = "Mètode d'autenticació";
 $string['nocontent'] = 'No data';
