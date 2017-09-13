@@ -492,7 +492,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
             . ' JOIN {questionnaire_survey} qs ON qs.id = q.sid'
             . ' WHERE m.name = :module'
             . ' AND cm.course = :courseid'
-            . ' AND qs.owner = :owner'
+            . ' AND qs.courseid = :owner'
             . ' AND qs.status != :status';
 
         return $DB->get_records_sql($sql, array(
@@ -537,7 +537,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         $sql = 'SELECT t.id, t.response_id as responseid, t.question_id as questionid, u.username' . $content
             . ' FROM {questionnaire_' . $type. '} t'
             . ' JOIN {questionnaire_response} r ON r.id = t.response_id'
-            . ' JOIN {user} u ON u.id = r.username'
+            . ' JOIN {user} u ON u.id = r.userid'
             . ' WHERE t.question_id ' . $sqlquestionids;
 
         return $DB->get_records_sql($sql, $questionidparams);
@@ -568,7 +568,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
             . ' FROM {questionnaire_' . $type . '} t'
             . ' JOIN {questionnaire_quest_choice} c ON t.choice_id = c.id'
             . ' JOIN {questionnaire_response} r ON r.id=t.response_id'
-            . ' JOIN {user} u ON u.id = r.username'
+            . ' JOIN {user} u ON u.id = r.userid'
             . $sqlro
             . ' WHERE t.question_id ' . $sqlquestionids;
 
