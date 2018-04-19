@@ -540,6 +540,7 @@ class moodle_local_secretaria_external extends external_api {
                     new external_single_structure(array(
                         'user' => self::value_required(PARAM_USERNAME, 'Username'),
                         'grade' => self::value_required(PARAM_RAW, 'Grade'),
+                        'grader' => self::value_required(PARAM_USERNAME, 'Grader'),
                     ))
                 ),
             ))

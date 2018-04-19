@@ -463,8 +463,8 @@ class local_secretaria_operations {
         foreach ($items as $item) {
             $grades = array();
             if ($userids) {
-                foreach ($this->moodle->get_grades($item['id'], $userids) as $userid => $grade) {
-                    $grades[] = array('user' => $usernames[$userid], 'grade' => $grade);
+                foreach ($this->moodle->get_grades($item['id'], $userids) as $userid => $data) {
+                    $grades[] = array('user' => $usernames[$userid], 'grade' => $data[0], 'grader' => $data[1]);
                 }
             }
             $result[] = array(
@@ -983,6 +983,7 @@ interface local_secretaria_moodle {
     public function get_survey_question_choices($questionids, $type);
     public function get_user($username);
     public function get_user_id($username);
+    public function get_user_username($userid);
     public function get_user_lastaccess($userids);
     public function get_users($usernames);
     public function groups_add_member($groupid, $userid);

@@ -317,7 +317,8 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
         foreach ($userids as $userid) {
             $value = grade_format_gradevalue($gradegrades[$userid]->finalgrade, $gradeitem);
-            $result[$userid] = isset($errors[$itemid]) ? get_string('error') : $value;
+            $grader = !empty($gradegrades[$userid]->usermodified) ? self::get_user_username($gradegrades[$userid]->usermodified) : '';
+            $result[$userid] = array(isset($errors[$itemid]) ? get_string('error') : $value, $grader);
         }
 
         return $result;
@@ -612,6 +613,14 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
          return $DB->get_field('user', 'id', array(
              'mnethostid' => $CFG->mnet_localhost_id,
              'username' => core_text::strtolower($username),
+             'deleted' => 0,
+         ));
+    }
+
+    public function get_user_username($userid) {
+         global $DB;
+         return $DB->get_field('user', 'username', array(
+             'id' => $userid,
              'deleted' => 0,
          ));
     }

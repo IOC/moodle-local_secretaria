@@ -695,7 +695,7 @@ class EnrolUsersTest extends OperationTest {
             $this->having_user_id('user' . $i, 300 + $i);
             $this->having_role_id('role' . $i, 400 + $i);
             $this->moodle->shouldReceive('role_assignment_exists')->with(200 + $i, 300 + $i, 400 + $i)->andReturn(false);
-            $this->moodle->shouldReceive('insert_role_assignment')->with(200 + $i, 300 + $i, 400 + $i)->once()->ordered();
+            $this->moodle->shouldReceive('insert_role_assignment')->with(200 + $i, 300 + $i, 400 + $i, false)->once()->ordered();
         }
         $this->moodle->shouldReceive('commit_transaction')->once()->ordered();
 
