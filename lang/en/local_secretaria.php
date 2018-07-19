@@ -33,6 +33,7 @@ $string['nocontent'] = 'No data';
 $string['password'] = 'Password';
 $string['pluginname'] = 'Secretaria';
 $string['pluginname_desc'] = 'Secretaria services.';
+$string['privacy:metadata'] = 'Secretaria plugin does not store any personal data.';
 $string['secretaria:manage'] = 'Manage secretaria services';
 $string['ws'] = 'Web Service';
 $string['notpermittedtojumpas'] = 'No podeu entrar a la Secretaria mentre tingueu iniciada la sessió com un altre usuari.';
