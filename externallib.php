@@ -721,7 +721,7 @@ class moodle_local_secretaria_external extends external_api {
                 'type' => self::value_required(PARAM_RAW, 'Survey type'),
                 'questions' => self::multiple_structure(
                     new external_single_structure(array(
-                        'name' => self::value_required(PARAM_TEXT, 'Question name'),
+                        'name' => self::value_null(PARAM_TEXT, 'Question name'),
                         'content' => self::value_required(PARAM_RAW, 'Question content'),
                         'position' => self::value_required(PARAM_INT, 'Question position'),
                         'type' => self::value_required(PARAM_TEXT, 'Question type'),

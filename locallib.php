@@ -515,8 +515,8 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
 
         $sql = 'SELECT q.id, q.name, q.content, q.type_id, q.position, qt.has_choices'
             . ' FROM {questionnaire_question} q'
-            . ' JOIN {questionnaire_question_type} qt ON qt.id = q.type_id'
-            . ' WHERE q.survey_id = :surveyid';
+            . ' JOIN {questionnaire_question_type} qt ON qt.typeid = q.type_id'
+            . ' WHERE q.surveyid = :surveyid';
 
         return $DB->get_records_sql($sql, array(
             'surveyid' => $surveyid
@@ -550,7 +550,7 @@ class local_secretaria_moodle_2x implements local_secretaria_moodle {
         list($sqlquestionids, $questionidparams) = $DB->get_in_or_equal($questionids, SQL_PARAMS_NAMED, 'questionid');
 
         if ($type == 'response_rank') {
-            $field = ', t.rank';
+            $field = ', t.rankvalue';
             $sqlro = '';
             $paramc = array();
         } else if ($type == 'resp_single') {

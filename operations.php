@@ -678,32 +678,38 @@ class local_secretaria_operations {
                                 $choices = array();
                                 break;
                             default:
-                                $responses = $this->moodle->get_survey_responses_multiple($question, $questiontypes[$type]);
-                                $choices = $this->moodle->get_survey_question_choices($question, $questiontypes[$type]);
-                        }
-
-                        foreach ($responses as $response) {
-                            if (!isset($responsestats[$response->questionid])) {
-                                $responsestats[$response->questionid] = array();
-                            }
-                            if (isset($response->other) and strpos($response->content, '!other') !== false) {
-                                if (strpos($response->content, '!other=') !== false) {
-                                    $response->content = preg_replace('/^\!other\=/', '', $response->content);
-                                    $response->content .= ' ' . $response->other;
+                                if (empty($questiontypes[$type])) {
+                                    $responses = array();
+                                    $choices = array();
                                 } else {
-                                    $response->content = $response->other;
+                                    $responses = $this->moodle->get_survey_responses_multiple($question, $questiontypes[$type]);
+                                    $choices = $this->moodle->get_survey_question_choices($question, $questiontypes[$type]);
                                 }
-                            }
-                            if (!isset($responsestats[$response->questionid][$response->responseid])) {
-                                $responsestats[$response->questionid][$response->responseid] = array (
-                                    'username' => $response->username,
-                                    'content' => array($response->content),
-                                    'rank' => isset($response->rank) ? array($response->rank) : array(),
-                                );
-                            } else {
-                                $responsestats[$response->questionid][$response->responseid]['content'][] = $response->content;
-                                if (isset($response->rank)) {
-                                    $responsestats[$response->questionid][$response->responseid]['rank'][] = $response->rank;
+                        }
+                        if (!empty($responses)) {
+                            foreach ($responses as $response) {
+                                if (!isset($responsestats[$response->questionid])) {
+                                    $responsestats[$response->questionid] = array();
+                                }
+                                if (isset($response->other) and strpos($response->content, '!other') !== false) {
+                                    if (strpos($response->content, '!other=') !== false) {
+                                        $response->content = preg_replace('/^\!other\=/', '', $response->content);
+                                        $response->content .= ' ' . $response->other;
+                                    } else {
+                                        $response->content = $response->other;
+                                    }
+                                }
+                                if (!isset($responsestats[$response->questionid][$response->responseid])) {
+                                    $responsestats[$response->questionid][$response->responseid] = array (
+                                        'username' => $response->username,
+                                        'content' => array($response->content),
+                                        'rank' => isset($response->rankvalue) ? array($response->rankvalue) : array(),
+                                    );
+                                } else {
+                                    $responsestats[$response->questionid][$response->responseid]['content'][] = $response->content;
+                                    if (isset($response->rankvalue)) {
+                                        $responsestats[$response->questionid][$response->responseid]['rank'][] = $response->rankvalue;
+                                    }
                                 }
                             }
                         }
