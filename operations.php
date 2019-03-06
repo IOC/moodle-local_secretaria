@@ -729,22 +729,25 @@ class local_secretaria_operations {
                         }
                     }
                     foreach ($questions as $key => $question) {
-                        $stats[] = array(
-                            'name' => $question->name,
-                            'content' => $question->content,
-                            'position' => $question->position,
-                            'type' => $question->type,
-                            'has_choices' => $question->has_choices,
-                            'choices' => isset($questionchoices[$question->id]) ? $questionchoices[$question->id] : array(),
-                            'responses' => isset($responsestats[$question->id]) ? $responsestats[$question->id] : array(),
-                        );
+                        // Avoid question types QUESPAGEBREAK and QUESSECTIONTEXT
+                        if ($question->type_id != 99 && $question->type_id != 100) {
+                            $stats[] = array(
+                                'name' => $question->name,
+                                'content' => $question->content,
+                                'position' => $question->position,
+                                'type' => $question->type,
+                                'has_choices' => $question->has_choices,
+                                'choices' => isset($questionchoices[$question->id]) ? $questionchoices[$question->id] : array(),
+                                'responses' => isset($responsestats[$question->id]) ? $responsestats[$question->id] : array(),
+                            );
+                        }
                     }
                 }
                 $result[] = array(
                     'idnumber' => $survey->idnumber ?: '',
                     'name' => $survey->name,
                     'type' => $survey->realm,
-                    'questions' => $stats,
+                    'questions' => isset($stats) ? $stats : array(),
                 );
             }
         }
